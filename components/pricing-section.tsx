@@ -6,41 +6,46 @@ import { useState } from "react"
 
 const pricingPlans = [
   {
-    name: "Starter",
+    name: "Campus Starter",
     price: "Free",
-    description: "Perfect for getting started with v0",
-    features: ["5 components per month", "Basic templates", "Community support", "Standard components"],
+    description: "For hackathon/demo and small clubs",
+    features: [
+      "Student dashboard",
+      "Event discovery",
+      "Basic timetable",
+      "Canteen ordering (tickets)",
+    ],
     popular: false,
     cta: "Get Started",
   },
   {
-    name: "Pro",
+    name: "Campus Pro",
     monthlyPrice: 29,
     annualPrice: 24,
-    description: "For professionals building serious projects",
+    description: "For departments and mid-sized campuses",
     features: [
-      "Unlimited components",
-      "Premium templates",
-      "Priority support",
-      "Advanced animations",
-      "Custom themes",
-      "Export to GitHub",
+      "Role-based access (Student/Teacher/Canteen/Admin)",
+      "Attendance management",
+      "Resource booking (Library/Halls)",
+      "Razorpay integration",
+      "Queue-based pre-orders",
+      "Campus navigation (voice)",
     ],
     popular: true,
     cta: "Start Free Trial",
   },
   {
-    name: "Team",
+    name: "Campus Enterprise",
     monthlyPrice: 99,
     annualPrice: 79,
-    description: "For teams collaborating on projects",
+    description: "For universities and multi-campus setups",
     features: [
       "Everything in Pro",
-      "Team collaboration",
-      "Shared component library",
+      "SSO & advanced permissions",
       "Advanced analytics",
       "Custom integrations",
       "Dedicated support",
+      "SLA & audit logs",
     ],
     popular: false,
     cta: "Contact Sales",
@@ -73,11 +78,11 @@ export function PricingSection() {
           </motion.div>
 
           <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-white via-white to-white/60 bg-clip-text text-transparent mb-4">
-            Choose your plan
+            Campus plans
           </h2>
 
           <p className="text-lg text-white/60 max-w-2xl mx-auto mb-8">
-            Start building beautiful components today. Upgrade anytime as your needs grow.
+            Start simple for demos; unlock role-based access, bookings, payments, and analytics as you grow.
           </p>
 
           {/* Monthly/Annual Toggle */}
@@ -183,13 +188,13 @@ export function PricingSection() {
           transition={{ duration: 0.6, delay: 0.4 }}
           className="text-center mt-16"
         >
-          <p className="text-white/60 mb-4">Need a custom solution? We're here to help.</p>
+          <p className="text-white/60 mb-4">Need a custom deployment for your institution?</p>
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className="text-[#e78a53] hover:text-[#e78a53]/80 font-medium transition-colors"
           >
-            Contact our sales team →
+            Contact our team →
           </motion.button>
         </motion.div>
       </div>

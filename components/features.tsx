@@ -56,7 +56,7 @@ export default function Features() {
             geist.className,
           )}
         >
-          Features
+          Campus Features
         </h2>
         <FollowerPointerCard
           title={
@@ -85,10 +85,10 @@ export default function Features() {
                 style={{ transition: "all 0s ease-in-out" }}
               >
                 <div className="flex flex-col gap-4">
-                  <h3 className="text-2xl leading-none font-semibold tracking-tight">CLI & Manual Support</h3>
+                  <h3 className="text-2xl leading-none font-semibold tracking-tight">Student Essentials</h3>
                   <div className="text-md text-muted-foreground flex flex-col gap-2 text-sm">
                     <p className="max-w-[460px]">
-                      Integrate your landing page directly in the product while using your favorite tools.
+                      Timetables, event discovery, food ordering, resource booking, campus map and attendance — built for students.
                     </p>
                   </div>
                 </div>
@@ -162,7 +162,7 @@ export default function Features() {
                       <div className="flex items-center gap-8">
                         {/* Left Column */}
                         <div className="flex flex-col gap-3">
-                          {["Feature-1", "Feature-1", "Feature-1"].map((item, index) => (
+                          {["Timetable", "Events", "Resources"].map((item, index) => (
                             <motion.div
                               key={`left-${index}`}
                               className="bg-white rounded px-3 py-2 flex items-center gap-2 text-black text-sm font-medium shadow-sm"
@@ -175,9 +175,9 @@ export default function Features() {
                               whileHover={{ scale: 1.05 }}
                             >
                               <div className="w-4 h-4 flex items-center justify-center">
-                                {index === 0 && <span className="text-xs">📄</span>}
-                                {index === 1 && <span className="text-xs">💰</span>}
-                                {index === 2 && <span className="text-xs">🏢</span>}
+                                {index === 0 && <span className="text-xs">🗓️</span>}
+                                {index === 1 && <span className="text-xs">🎫</span>}
+                                {index === 2 && <span className="text-xs">📚</span>}
                               </div>
                               {item}
                             </motion.div>
@@ -201,7 +201,7 @@ export default function Features() {
 
                         {/* Right Column */}
                         <div className="flex flex-col gap-3">
-                          {["Feature-1", "Feature-1", "Feature-1"].map((item, index) => (
+                          {["Food Ordering", "Navigation", "Attendance"].map((item, index) => (
                             <motion.div
                               key={`right-${index}`}
                               className="bg-white rounded px-3 py-2 flex items-center gap-2 text-black text-sm font-medium shadow-sm"
@@ -214,9 +214,9 @@ export default function Features() {
                               whileHover={{ scale: 1.05 }}
                             >
                               <div className="w-4 h-4 flex items-center justify-center">
-                                {index === 0 && <span className="text-xs">👥</span>}
-                                {index === 1 && <span className="text-xs">💳</span>}
-                                {index === 2 && <span className="text-xs">👨‍⚕️</span>}
+                                {index === 0 && <span className="text-xs">🍔</span>}
+                                {index === 1 && <span className="text-xs">🗺️</span>}
+                                {index === 2 && <span className="text-xs">✅</span>}
                               </div>
                               {item}
                             </motion.div>
@@ -273,27 +273,15 @@ export default function Features() {
                 style={{ transition: "all 0s ease-in-out" }}
               >
                 <div className="flex flex-col gap-4">
-                  <h3 className="text-2xl leading-none font-semibold tracking-tight">Globally Usable</h3>
+                  <h3 className="text-2xl leading-none font-semibold tracking-tight">Teacher Tools</h3>
                   <div className="text-md text-muted-foreground flex flex-col gap-2 text-sm">
-                    <p className="max-w-[460px]">
-                      Blocks are available everywhere but ours are the best. Use them in your favorite framework or even
-                      in plain HTML.
-                    </p>
+                    <p className="max-w-[460px]">Timetables, attendance updates, and streamlined canteen ordering for faculty.</p>
                   </div>
                 </div>
                 <div className="flex min-h-[300px] grow items-start justify-center select-none">
-                  <h1 className="mt-8 text-center text-5xl leading-[100%] font-semibold sm:leading-normal lg:mt-12 lg:text-6xl">
-                    <span className='bg-background relative mt-3 inline-block w-fit rounded-md border px-1.5 py-0.5 before:absolute before:top-0 before:left-0 before:z-10 before:h-full before:w-full before:bg-[url("/noise.gif")] before:opacity-[0.09] before:content-[""]'>
-                      <ScrambleHover
-                        text="feature-2"
-                        scrambleSpeed={70}
-                        maxIterations={20}
-                        useOriginalCharsOnly={false}
-                        className="cursor-pointer bg-gradient-to-t from-[#e78a53] to-[#e78a53] bg-clip-text text-transparent"
-                        isHovering={isHovering}
-                        setIsHovering={setIsHovering}
-                        characters="abcdefghijklmnopqrstuvwxyz!@#$%^&*()_+-=[]{}|;':\,./<>?"
-                      />
+                  <h1 className="mt-8 text-center text-4xl sm:text-5xl lg:text-6xl leading-tight font-semibold">
+                    <span className="relative mt-3 inline-block w-fit rounded-md px-2 py-1 bg-[#e78a53] text-black">
+                      Attendance & Timetables
                     </span>
                   </h1>
                   <div className="absolute top-64 z-10 flex items-center justify-center">
@@ -330,11 +318,9 @@ export default function Features() {
                 style={{ transition: "all 0s ease-in-out" }}
               >
                 <div className="flex flex-col gap-4">
-                  <h3 className="text-2xl leading-none font-semibold tracking-tight">Smart Components</h3>
+                  <h3 className="text-2xl leading-none font-semibold tracking-tight">Canteen & Queueing</h3>
                   <div className="text-md text-muted-foreground flex flex-col gap-2 text-sm">
-                    <p className="max-w-[460px]">
-                      Intelligent components that adapt to your needs with built-in animations and interactions.
-                    </p>
+                    <p className="max-w-[460px]">Stock management, current/previous orders, and queue-based pre-order scheduling.</p>
                   </div>
                 </div>
                 <div className="flex grow items-center justify-center select-none relative min-h-[300px] p-4">
@@ -343,7 +329,7 @@ export default function Features() {
                       <div className="p-4">
                         <textarea
                           className="w-full min-h-[100px] bg-transparent border-none text-white placeholder:text-white/50 resize-none focus:outline-none text-base leading-relaxed"
-                          placeholder="Search the web..."
+                          placeholder="Search menu, events, rooms..."
                           value={inputValue}
                           onChange={(e) => setInputValue(e.target.value)}
                           onKeyDown={handleKeyDown}
@@ -383,7 +369,7 @@ export default function Features() {
                               <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path>
                               <path d="M2 12h20"></path>
                             </svg>
-                            Search
+                            Search Campus
                           </button>
                         </div>
                         <button className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors">
@@ -426,11 +412,9 @@ export default function Features() {
                 style={{ transition: "all 0s ease-in-out" }}
               >
                 <div className="flex flex-col gap-4">
-                  <h3 className="text-2xl leading-none font-semibold tracking-tight">Dynamic Layouts</h3>
+                  <h3 className="text-2xl leading-none font-semibold tracking-tight">Admin & Resources</h3>
                   <div className="text-md text-muted-foreground flex flex-col gap-2 text-sm">
-                    <p className="max-w-[460px]">
-                      Responsive layouts that transform and adapt seamlessly across all device sizes.
-                    </p>
+                    <p className="max-w-[460px]">Event publishing, internship portal, and resource bookings for library and halls.</p>
                   </div>
                 </div>
                 <div className="flex grow items-center justify-center select-none relative min-h-[300px] p-4">
