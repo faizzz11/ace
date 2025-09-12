@@ -1,5 +1,27 @@
 import mongoose, { Schema, models, model } from "mongoose";
 
+const MenuItemSchema = new Schema(
+  {
+    canteenId: { type: Schema.Types.ObjectId, ref: 'Canteen', required: true },
+    name: { type: String, required: true },
+    description: { type: String },
+    price: { type: Number, required: true },
+    category: { type: String, required: true },
+    image: { type: String }, // Base64 encoded image or URL
+    isVeg: { type: Boolean, default: true },
+    isSpicy: { type: Boolean, default: false },
+    prepTime: { type: Number, default: 15 }, // in minutes
+    rating: { type: Number, default: 4.0, min: 0, max: 5 },
+    isAvailable: { type: Boolean, default: true },
+  },
+  { timestamps: true }
+);
+
+// Index for efficient querying
+MenuItemSchema.index({ canteenId: 1 });
+MenuItemSchema.index({ canteenId: 1, category: 1 });
+MenuItemSchema.index({ canteenId: 1, isAvailable: 1 });
+
 const StudentSchema = new Schema(
   {
     firstName: { type: String, required: true },
@@ -140,3 +162,4 @@ export const CanteenModel = models.Canteen || model("Canteen", CanteenSchema);
 export const TimetableModel = models.Timetable || model("Timetable", TimetableSchema);
 export const AttendanceModel = models.Attendance || model("Attendance", AttendanceSchema);
 export const SectionModel = models.Section || model("Section", SectionSchema);
+export const MenuItemModel = models.MenuItem || model("MenuItem", MenuItemSchema);
