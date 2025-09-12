@@ -12,15 +12,32 @@ import { Label } from "@/components/ui/label"
 export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [role, setRole] = useState<'student' | 'teacher'>('student')
   const [isLoading, setIsLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    // Simulate login process
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    setIsLoading(false)
-    console.log("[v0] Login attempt:", { email, password })
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, role })
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        alert(data.error || 'Login failed')
+        setIsLoading(false)
+        return
+      }
+      localStorage.setItem('isLoggedIn', 'true')
+      localStorage.setItem('userRole', role)
+      localStorage.setItem('currentUser', JSON.stringify(data))
+      window.location.href = role === 'student' ? '/student/dashboard' : '/teacher/dashboard'
+    } catch (err) {
+      alert('Network error')
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -66,6 +83,18 @@ export default function LoginPage() {
           </Link>
           <h1 className="text-3xl font-bold text-white mb-2">Welcome back</h1>
           <p className="text-zinc-400">Sign in to your account to continue</p>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="role" className="text-white">Role</Label>
+          <select
+            id="role"
+            value={role}
+            onChange={(e) => setRole(e.target.value as any)}
+            className="w-full bg-zinc-800/50 border-zinc-700 text-white rounded-md px-3 py-2"
+          >
+            <option value="student">Student</option>
+            <option value="teacher">Teacher</option>
+          </select>
         </div>
 
         {/* Login Form */}
