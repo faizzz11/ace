@@ -59,13 +59,20 @@ const TeacherSchema = new Schema(
 
 const CanteenSchema = new Schema(
   {
+    businessName: { type: String, required: true },
     ownerName: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     phone: { type: String, required: true },
     alternatePhone: { type: String },
+    address: { type: String, required: true },
     gstNumber: { type: String },
+    licenseNumber: { type: String, required: true },
     cuisineTypes: [{ type: String, required: true }],
+    operatingHours: {
+      openTime: { type: String, required: true },
+      closeTime: { type: String, required: true },
+    },
     seatingCapacity: { type: String, required: true },
     servingCapacity: { type: String, required: true },
     emergencyContactName: { type: String, required: true },
@@ -127,40 +134,9 @@ const SectionSchema = new Schema(
 SectionSchema.index({ teacherId: 1, className: 1, subjectName: 1 });
 SectionSchema.index({ className: 1 });
 
-const MenuItemSchema = new Schema(
-  {
-    canteenId: { type: Schema.Types.ObjectId, ref: 'Canteen', required: true },
-    name: { type: String, required: true },
-    description: { type: String },
-    price: { type: Number, required: true },
-    category: { type: String, required: true },
-    image: { type: String }, // Base64 encoded image or URL
-    isVeg: { type: Boolean, default: true },
-    isSpicy: { type: Boolean, default: false },
-    prepTime: { type: Number, default: 15 }, // in minutes
-    rating: { type: Number, default: 4.0, min: 0, max: 5 },
-    isAvailable: { type: Boolean, default: true },
-  },
-  { timestamps: true }
-);
-
-// Index for efficient querying
-MenuItemSchema.index({ canteenId: 1 });
-MenuItemSchema.index({ canteenId: 1, category: 1 });
-MenuItemSchema.index({ canteenId: 1, isAvailable: 1 });
-
 export const StudentModel = models.Student || model("Student", StudentSchema);
 export const TeacherModel = models.Teacher || model("Teacher", TeacherSchema);
-
-// Force recreate the Canteen model to ensure schema changes are applied
-try {
-  mongoose.deleteModel("Canteen");
-} catch (e) {
-  // Model doesn't exist yet, that's fine
-}
-export const CanteenModel = model("Canteen", CanteenSchema);
-
+export const CanteenModel = models.Canteen || model("Canteen", CanteenSchema);
 export const TimetableModel = models.Timetable || model("Timetable", TimetableSchema);
 export const AttendanceModel = models.Attendance || model("Attendance", AttendanceSchema);
 export const SectionModel = models.Section || model("Section", SectionSchema);
-export const MenuItemModel = models.MenuItem || model("MenuItem", MenuItemSchema);
