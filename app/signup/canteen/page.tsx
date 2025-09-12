@@ -37,6 +37,10 @@ import {
 export default function CanteenSignupPage() {
   const [currentStep, setCurrentStep] = useState(1)
   const [isLoading, setIsLoading] = useState(false)
+  const requiredCanteenFields = [
+    'businessName', 'ownerName', 'email', 'password', 'confirmPassword', 'phone', 'address', 'licenseNumber',
+    'seatingCapacity', 'servingCapacity', 'emergencyContactName', 'emergencyContactPhone', 'bankAccountNumber', 'bankIFSC', 'panNumber'
+  ]
 
   const [formData, setFormData] = useState({
     // Section 1: Business Information
@@ -59,7 +63,7 @@ export default function CanteenSignupPage() {
     },
     seatingCapacity: "",
     servingCapacity: "",
-    
+
     // Section 3: Contact & Legal
     emergencyContactName: "",
     emergencyContactPhone: "",
@@ -80,7 +84,7 @@ export default function CanteenSignupPage() {
 
   const cuisineOptions = [
     "North Indian",
-    "South Indian", 
+    "South Indian",
     "Chinese",
     "Continental",
     "Italian",
@@ -146,24 +150,41 @@ export default function CanteenSignupPage() {
   }
 
   const handleSubmit = async () => {
+    const missing = requiredCanteenFields.filter((k) => !((formData as any)[k] && String((formData as any)[k]).trim().length))
+    if (missing.length) {
+      alert(`Please fill all fields: ${missing.join(', ')}`)
+      return
+    }
+    if (!formData.cuisineTypes.length) {
+      alert('Please select or add at least one cuisine type')
+      return
+    }
+    if (!formData.operatingHours.openTime || !formData.operatingHours.closeTime) {
+      alert('Please set operating hours')
+      return
+    }
+    if (formData.password !== formData.confirmPassword) {
+      alert('Passwords do not match')
+      return
+    }
     setIsLoading(true)
-    await new Promise(resolve => setTimeout(resolve, 2000))
-
-    // Store user data in localStorage
-    localStorage.setItem('canteenData', JSON.stringify(formData))
-    localStorage.setItem('isLoggedIn', 'true')
-    localStorage.setItem('userRole', 'canteen')
-    localStorage.setItem('currentUser', JSON.stringify({
-      id: Date.now(),
-      name: formData.businessName,
-      owner: formData.ownerName,
-      email: formData.email,
-      role: 'canteen',
-      licenseNumber: formData.licenseNumber
-    }))
-
-    setIsLoading(false)
-    window.location.href = '/canteen/dashboard'
+    try {
+      const res = await fetch('/api/signup/canteen', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        alert(data.error || 'Signup failed')
+        setIsLoading(false)
+        return
+      }
+      window.location.href = '/canteen/dashboard'
+    } catch (e: any) {
+      alert('Network error')
+      setIsLoading(false)
+    }
   }
 
   const renderStep = () => {
@@ -339,11 +360,10 @@ export default function CanteenSignupPage() {
                           setFormData(prev => ({ ...prev, cuisineTypes: [...prev.cuisineTypes, cuisine] }))
                         }
                       }}
-                      className={`p-2 text-sm rounded-lg border transition-colors ${
-                        formData.cuisineTypes.includes(cuisine)
-                          ? 'bg-[#e78a53]/20 border-[#e78a53]/50 text-[#e78a53]'
-                          : 'bg-background/30 border-border/50 text-zinc-400 hover:bg-background/50'
-                      }`}
+                      className={`p-2 text-sm rounded-lg border transition-colors ${formData.cuisineTypes.includes(cuisine)
+                        ? 'bg-[#e78a53]/20 border-[#e78a53]/50 text-[#e78a53]'
+                        : 'bg-background/30 border-border/50 text-zinc-400 hover:bg-background/50'
+                        }`}
                     >
                       {cuisine}
                     </button>
@@ -513,28 +533,7 @@ export default function CanteenSignupPage() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="space-y-4">
-                  <Label className="text-foreground flex items-center gap-2">
-                    <Upload className="h-4 w-4 text-[#e78a53]" />
-                    Business Photo
-                  </Label>
-                  <div className="border-2 border-dashed border-border/50 rounded-lg p-4 text-center">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleFileUpload(e, 'profilePicture')}
-                      className="hidden"
-                      id="profile-upload"
-                    />
-                    <label htmlFor="profile-upload" className="cursor-pointer">
-                      <Upload className="h-6 w-6 text-[#e78a53] mx-auto mb-2" />
-                      <p className="text-foreground text-sm">
-                        {formData.profilePicture ? formData.profilePicture.name : 'Upload photo'}
-                      </p>
-                      <p className="text-xs text-muted-foreground">JPG, PNG up to 5MB</p>
-                    </label>
-                  </div>
-                </div>
+
 
                 <div className="space-y-4">
                   <Label className="text-foreground flex items-center gap-2">
@@ -660,17 +659,15 @@ export default function CanteenSignupPage() {
           <div className="flex items-center gap-4">
             {[1, 2, 3, 4].map((step) => (
               <div key={step} className="flex items-center">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
-                  currentStep >= step
-                    ? 'bg-[#e78a53] border-[#e78a53] text-white'
-                    : 'bg-transparent border-zinc-600 text-zinc-600'
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${currentStep >= step
+                  ? 'bg-[#e78a53] border-[#e78a53] text-white'
+                  : 'bg-transparent border-zinc-600 text-zinc-600'
                   }`}>
                   {currentStep > step ? <CheckCircle className="h-5 w-5" /> : step}
                 </div>
                 {step < 4 && (
-                  <div className={`w-12 h-0.5 mx-2 transition-all duration-300 ${
-                    currentStep > step ? 'bg-[#e78a53]' : 'bg-zinc-600'
-                  }`} />
+                  <div className={`w-12 h-0.5 mx-2 transition-all duration-300 ${currentStep > step ? 'bg-[#e78a53]' : 'bg-zinc-600'
+                    }`} />
                 )}
               </div>
             ))}
