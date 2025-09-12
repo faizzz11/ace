@@ -87,6 +87,21 @@ const CanteenSchema = new Schema(
   { timestamps: true }
 );
 
+const TimetableSchema = new Schema(
+  {
+    teacherId: { type: Schema.Types.ObjectId, ref: 'Teacher', required: true },
+    day: { type: String, required: true },
+    timeSlot: { type: String, required: true },
+    subjectName: { type: String, required: true },
+    className: { type: String, required: true },
+  },
+  { timestamps: true }
+);
+
+// Create compound index for unique constraint on teacherId + day + timeSlot
+TimetableSchema.index({ teacherId: 1, day: 1, timeSlot: 1 }, { unique: true });
+
 export const StudentModel = models.Student || model("Student", StudentSchema);
 export const TeacherModel = models.Teacher || model("Teacher", TeacherSchema);
 export const CanteenModel = models.Canteen || model("Canteen", CanteenSchema);
+export const TimetableModel = models.Timetable || model("Timetable", TimetableSchema);
