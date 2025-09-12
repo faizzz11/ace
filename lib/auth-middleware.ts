@@ -48,3 +48,24 @@ export const getCurrentTeacherInfo = () => {
   const auth = getCurrentUser();
   return auth?.user || null;
 };
+
+// Helper function to check if user is authenticated admin
+export const isAuthenticatedAdmin = () => {
+  const auth = getCurrentUser();
+  return auth && auth.isLoggedIn && auth.role === 'admin';
+};
+
+// Helper function to redirect if not authenticated admin
+export const redirectIfNotAuthenticatedAdmin = () => {
+  if (!isAuthenticatedAdmin()) {
+    window.location.href = '/admin/login';
+    return false;
+  }
+  return true;
+};
+
+// Helper function to get current admin info
+export const getCurrentAdminInfo = () => {
+  const auth = getCurrentUser();
+  return auth?.user || null;
+};

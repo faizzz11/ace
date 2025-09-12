@@ -59,13 +59,20 @@ const TeacherSchema = new Schema(
 
 const CanteenSchema = new Schema(
   {
+    businessName: { type: String, required: true },
     ownerName: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     phone: { type: String, required: true },
     alternatePhone: { type: String },
+    address: { type: String, required: true },
     gstNumber: { type: String },
+    licenseNumber: { type: String, required: true },
     cuisineTypes: [{ type: String, required: true }],
+    operatingHours: {
+      openTime: { type: String, required: true },
+      closeTime: { type: String, required: true },
+    },
     seatingCapacity: { type: String, required: true },
     servingCapacity: { type: String, required: true },
     emergencyContactName: { type: String, required: true },
@@ -127,17 +134,96 @@ const SectionSchema = new Schema(
 SectionSchema.index({ teacherId: 1, className: 1, subjectName: 1 });
 SectionSchema.index({ className: 1 });
 
+const EventSchema = new Schema(
+  {
+    title: { type: String, required: true },
+    description: { type: String, required: true },
+    eventType: { type: String, enum: ['academic', 'cultural', 'sports', 'workshop', 'seminar', 'other'], required: true },
+    startDate: { type: Date, required: true },
+    endDate: { type: Date, required: true },
+    startTime: { type: String, required: true },
+    endTime: { type: String, required: true },
+    venue: { type: String, required: true },
+    organizer: { type: String, required: true },
+    contactEmail: { type: String },
+    contactPhone: { type: String },
+    maxParticipants: { type: Number },
+    registrationDeadline: { type: Date },
+    fee: { type: Number, default: 0 },
+    status: { type: String, enum: ['draft', 'published', 'ongoing', 'completed', 'cancelled'], default: 'draft' },
+    imageUrl: { type: String },
+    tags: [{ type: String }],
+    requirements: [{ type: String }],
+    isPublic: { type: Boolean, default: true },
+  },
+  { timestamps: true }
+);
+
+const ResourceSchema = new Schema(
+  {
+    title: { type: String, required: true },
+    description: { type: String, required: true },
+    category: { type: String, enum: ['document', 'video', 'audio', 'image', 'link', 'other'], required: true },
+    subject: { type: String },
+    course: { type: String },
+    semester: { type: String },
+    fileUrl: { type: String },
+    fileSize: { type: Number },
+    fileName: { type: String },
+    linkUrl: { type: String },
+    author: { type: String },
+    uploadedBy: { type: String, required: true },
+    downloadCount: { type: Number, default: 0 },
+    isPublic: { type: Boolean, default: true },
+    status: { type: String, enum: ['active', 'archived'], default: 'active' },
+    tags: [{ type: String }],
+    difficulty: { type: String, enum: ['beginner', 'intermediate', 'advanced'] },
+  },
+  { timestamps: true }
+);
+
+const InternshipSchema = new Schema(
+  {
+    title: { type: String, required: true },
+    company: { type: String, required: true },
+    description: { type: String, required: true },
+    requirements: [{ type: String }],
+    responsibilities: [{ type: String }],
+    skills: [{ type: String }],
+    location: { type: String, required: true },
+    locationType: { type: String, enum: ['onsite', 'remote', 'hybrid'], required: true },
+    duration: { type: String, required: true },
+    stipend: { type: String },
+    applicationDeadline: { type: Date, required: true },
+    startDate: { type: Date },
+    endDate: { type: Date },
+    contactEmail: { type: String, required: true },
+    contactPhone: { type: String },
+    companyWebsite: { type: String },
+    applicationUrl: { type: String },
+    status: { type: String, enum: ['active', 'closed', 'draft'], default: 'draft' },
+    category: { type: String, enum: ['engineering', 'design', 'marketing', 'sales', 'hr', 'finance', 'other'] },
+    experienceLevel: { type: String, enum: ['fresher', 'experienced'], default: 'fresher' },
+    isRemote: { type: Boolean, default: false },
+    applicationCount: { type: Number, default: 0 },
+  },
+  { timestamps: true }
+);
+
+// Indexes for better performance
+EventSchema.index({ startDate: 1, status: 1 });
+EventSchema.index({ eventType: 1 });
+ResourceSchema.index({ category: 1, subject: 1, course: 1 });
+ResourceSchema.index({ status: 1, isPublic: 1 });
+InternshipSchema.index({ applicationDeadline: 1, status: 1 });
+InternshipSchema.index({ company: 1, category: 1 });
+
 export const StudentModel = models.Student || model("Student", StudentSchema);
 export const TeacherModel = models.Teacher || model("Teacher", TeacherSchema);
-
-// Force recreate the Canteen model to ensure schema changes are applied
-try {
-  mongoose.deleteModel("Canteen");
-} catch (e) {
-  // Model doesn't exist yet, that's fine
-}
-export const CanteenModel = model("Canteen", CanteenSchema);
-
+export const CanteenModel = models.Canteen || model("Canteen", CanteenSchema);
 export const TimetableModel = models.Timetable || model("Timetable", TimetableSchema);
 export const AttendanceModel = models.Attendance || model("Attendance", AttendanceSchema);
 export const SectionModel = models.Section || model("Section", SectionSchema);
+export const EventModel = models.Event || model("Event", EventSchema);
+export const ResourceModel = models.Resource || model("Resource", ResourceSchema);
+export const InternshipModel = models.Internship || model("Internship", InternshipSchema);
