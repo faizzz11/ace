@@ -166,7 +166,7 @@ export default function CallButton({ assistantId }: CallButtonProps) {
     <>
       <div className="flex flex-col space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="phoneNumber" className="text-gray-700">
+          <Label htmlFor="phoneNumber" className="text-zinc-300">
             Phone Number
           </Label>
           <div className="relative">
@@ -177,22 +177,22 @@ export default function CallButton({ assistantId }: CallButtonProps) {
               value={phoneNumber}
               onChange={handlePhoneNumberChange}
               disabled={isLoading}
-              className={`pl-3 pr-10 py-2 ${!isValidNumber ? 'border-[#FF647C] focus:ring-[#FF647C] focus:border-[#FF647C]' : 'border-gray-300 focus:ring-[#5C5FFF] focus:border-[#5C5FFF]'}`}
+              className={`pl-3 pr-10 py-2 bg-zinc-900 border ${!isValidNumber ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-zinc-700 focus:ring-[#e78a53] focus:border-[#e78a53]'}`}
             />
             {!isValidNumber && (
               <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-                <AlertCircle className="h-5 w-5 text-[#FF647C]" />
+                <AlertCircle className="h-5 w-5 text-red-500" />
               </div>
             )}
           </div>
 
           {!isValidNumber && (
-            <p className="mt-1 text-sm text-[#FF647C]">
+            <p className="mt-1 text-sm text-red-500">
               Please enter a valid international phone number with country code
             </p>
           )}
 
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-zinc-500">
             Format: Include country code with + (e.g., +917738705798)
           </p>
         </div>
@@ -200,7 +200,7 @@ export default function CallButton({ assistantId }: CallButtonProps) {
         <Button
           onClick={initiateCall}
           disabled={isLoading || !isValidNumber}
-          className="w-full bg-[#5C5FFF] hover:bg-[#5C5FFF]/90 text-white transition-colors"
+          className="w-full bg-[#e78a53] hover:bg-[#e78a53]/90 text-black font-medium transition-colors"
         >
           {isLoading ? (
             <>
@@ -216,8 +216,8 @@ export default function CallButton({ assistantId }: CallButtonProps) {
         </Button>
 
         {errorMessage && (
-          <div className="flex items-start gap-2 p-3 rounded bg-[#FF647C]/10 text-[#FF647C] text-sm">
-            <AlertCircle className="h-5 w-5 text-[#FF647C] flex-shrink-0 mt-0.5" />
+          <div className="flex items-start gap-2 p-3 rounded bg-red-500/10 text-red-500 text-sm">
+            <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
             <span>{errorMessage}</span>
           </div>
         )}
@@ -225,39 +225,39 @@ export default function CallButton({ assistantId }: CallButtonProps) {
 
       {/* Success Dialog */}
       <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
-        <DialogContent className="sm:max-w-md border-0 shadow-xl">
+        <DialogContent className="sm:max-w-md border border-zinc-800 bg-zinc-900 shadow-xl">
           <DialogHeader>
-            <div className="mx-auto bg-[#00C2D1]/20 rounded-full w-16 h-16 flex items-center justify-center mb-4">
-              <CheckCircle2 className="h-9 w-9 text-[#00C2D1]" />
+            <div className="mx-auto bg-[#e78a53]/20 rounded-full w-16 h-16 flex items-center justify-center mb-4">
+              <CheckCircle2 className="h-9 w-9 text-[#e78a53]" />
             </div>
-            <DialogTitle className="text-center text-xl">Call Sent Successfully!</DialogTitle>
-            <DialogDescription className="text-center">
+            <DialogTitle className="text-center text-xl text-white">Call Sent Successfully!</DialogTitle>
+            <DialogDescription className="text-center text-zinc-400">
               Your AI Mentor will call you shortly at {phoneNumber}
             </DialogDescription>
           </DialogHeader>
 
-          <div className="flex flex-col space-y-3 p-4 bg-[#5C5FFF]/10 rounded-md">
+          <div className="flex flex-col space-y-3 p-4 bg-[#e78a53]/10 rounded-md">
             <div className="flex justify-center items-center gap-2">
-              <PhoneCall className="h-5 w-5 text-[#5C5FFF]" />
-              <p className="text-[#5C5FFF] font-medium">Get ready to answer your phone</p>
+              <PhoneCall className="h-5 w-5 text-[#e78a53]" />
+              <p className="text-[#e78a53] font-medium">Get ready to answer your phone</p>
             </div>
 
             {callId && (
-              <div className="bg-white p-3 rounded text-center">
-                <p className="text-xs text-gray-500">Call Reference ID:</p>
-                <p className="font-mono text-sm text-gray-700 break-all">{callId}</p>
+              <div className="bg-black/30 border border-zinc-800 p-3 rounded text-center">
+                <p className="text-xs text-zinc-400">Call Reference ID:</p>
+                <p className="font-mono text-sm text-white break-all">{callId}</p>
               </div>
             )}
-            
-            <p className="text-sm text-[#5C5FFF]/80 text-center">
+
+            <p className="text-sm text-[#e78a53]/80 text-center">
               Please answer the incoming call to start your AI Mentor session
             </p>
           </div>
-          
+
           <DialogFooter className="sm:justify-center">
-            <Button 
+            <Button
               onClick={() => setShowSuccessDialog(false)}
-              className="bg-[#5C5FFF] hover:bg-[#5C5FFF]/90 text-white transition-colors"
+              className="bg-[#e78a53] hover:bg-[#e78a53]/90 text-black transition-colors"
             >
               Got it
             </Button>
