@@ -30,7 +30,7 @@ import {
   Building
 } from "lucide-react"
 
-export default function StudentDashboard() {
+export default function StudentEventsPage() {
   // Dummy events data
   const events = [
     {
@@ -173,8 +173,8 @@ export default function StudentDashboard() {
           </Link>
           
           <Link href="/student/events">
-            <div className="flex items-center gap-3 px-4 py-3 text-zinc-400 hover:text-white hover:bg-zinc-800/50 rounded-lg transition-colors">
-              <Users className="h-5 w-5" />
+            <div className="flex items-center gap-3 px-4 py-3 text-white bg-[#e78a53]/10 border-l-2 border-[#e78a53] rounded-lg">
+              <Users className="h-5 w-5 text-[#e78a53]" />
               <span>Events</span>
             </div>
           </Link>
