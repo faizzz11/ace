@@ -38,29 +38,22 @@ export default function CanteenSignupPage() {
   const [currentStep, setCurrentStep] = useState(1)
   const [isLoading, setIsLoading] = useState(false)
   const requiredCanteenFields = [
-    'businessName', 'ownerName', 'email', 'password', 'confirmPassword', 'phone', 'address', 'licenseNumber',
+    'ownerName', 'email', 'password', 'confirmPassword', 'phone',
     'seatingCapacity', 'servingCapacity', 'emergencyContactName', 'emergencyContactPhone', 'bankAccountNumber', 'bankIFSC', 'panNumber'
   ]
 
   const [formData, setFormData] = useState({
     // Section 1: Business Information
-    businessName: "",
     ownerName: "",
     email: "",
     password: "",
     confirmPassword: "",
     phone: "",
     alternatePhone: "",
-    address: "",
     gstNumber: "",
 
     // Section 2: Operation Details
-    licenseNumber: "",
     cuisineTypes: [] as string[],
-    operatingHours: {
-      openTime: "",
-      closeTime: "",
-    },
     seatingCapacity: "",
     servingCapacity: "",
 
@@ -75,8 +68,6 @@ export default function CanteenSignupPage() {
     description: "",
     specialities: [] as string[],
     profilePicture: null as File | null,
-    businessLicense: null as File | null,
-    foodLicense: null as File | null,
   })
 
   const [newCuisine, setNewCuisine] = useState("")
@@ -134,7 +125,7 @@ export default function CanteenSignupPage() {
     setFormData(prev => ({ ...prev, specialities: prev.specialities.filter(s => s !== speciality) }))
   }
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, field: 'profilePicture' | 'businessLicense' | 'foodLicense') => {
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, field: 'profilePicture') => {
     const file = e.target.files?.[0]
     if (file) {
       setFormData(prev => ({ ...prev, [field]: file }))
@@ -159,10 +150,7 @@ export default function CanteenSignupPage() {
       alert('Please select or add at least one cuisine type')
       return
     }
-    if (!formData.operatingHours.openTime || !formData.operatingHours.closeTime) {
-      alert('Please set operating hours')
-      return
-    }
+
     if (formData.password !== formData.confirmPassword) {
       alert('Passwords do not match')
       return
@@ -201,40 +189,29 @@ export default function CanteenSignupPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-foreground flex items-center gap-2">
-                    <Building className="h-4 w-4 text-[#e78a53]" />
-                    Business Name
-                  </Label>
-                  <Input
-                    value={formData.businessName}
-                    onChange={(e) => handleInputChange('businessName', e.target.value)}
-                    placeholder="Enter your canteen/restaurant name"
-                    className="bg-background/50 border-border/50"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-foreground">Owner Name</Label>
-                  <Input
-                    value={formData.ownerName}
-                    onChange={(e) => handleInputChange('ownerName', e.target.value)}
-                    placeholder="Enter owner's full name"
-                    className="bg-background/50 border-border/50"
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label className="text-foreground flex items-center gap-2">
+                  <User className="h-4 w-4 text-[#e78a53]" />
+                  Owner Name
+                </Label>
+                <Input
+                  value={formData.ownerName}
+                  onChange={(e) => handleInputChange('ownerName', e.target.value)}
+                  placeholder="Enter owner's full name"
+                  className="bg-background/50 border-border/50"
+                />
               </div>
 
               <div className="space-y-2">
                 <Label className="text-foreground flex items-center gap-2">
                   <Mail className="h-4 w-4 text-[#e78a53]" />
-                  Business Email
+                  Email Address
                 </Label>
                 <Input
                   type="email"
                   value={formData.email}
                   onChange={(e) => handleInputChange('email', e.target.value)}
-                  placeholder="Enter business email address"
+                  placeholder="Enter email address"
                   className="bg-background/50 border-border/50"
                 />
               </div>
@@ -291,19 +268,6 @@ export default function CanteenSignupPage() {
 
               <div className="space-y-2">
                 <Label className="text-foreground flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-[#e78a53]" />
-                  Business Address
-                </Label>
-                <Textarea
-                  value={formData.address}
-                  onChange={(e) => handleInputChange('address', e.target.value)}
-                  placeholder="Enter complete business address"
-                  className="bg-background/50 border-border/50 min-h-[80px]"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-foreground flex items-center gap-2">
                   <Hash className="h-4 w-4 text-[#e78a53]" />
                   GST Number (Optional)
                 </Label>
@@ -330,19 +294,6 @@ export default function CanteenSignupPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label className="text-foreground flex items-center gap-2">
-                  <Hash className="h-4 w-4 text-[#e78a53]" />
-                  Food License Number
-                </Label>
-                <Input
-                  value={formData.licenseNumber}
-                  onChange={(e) => handleInputChange('licenseNumber', e.target.value)}
-                  placeholder="Enter FSSAI license number"
-                  className="bg-background/50 border-border/50"
-                />
-              </div>
-
               <div className="space-y-4">
                 <Label className="text-foreground flex items-center gap-2">
                   <UtensilsCrossed className="h-4 w-4 text-[#e78a53]" />
@@ -391,33 +342,6 @@ export default function CanteenSignupPage() {
                       />
                     </Badge>
                   ))}
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <Label className="text-foreground flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-[#e78a53]" />
-                  Operating Hours
-                </Label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-foreground text-sm">Opening Time</Label>
-                    <Input
-                      type="time"
-                      value={formData.operatingHours.openTime}
-                      onChange={(e) => handleInputChange('operatingHours.openTime', e.target.value)}
-                      className="bg-background/50 border-border/50"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-foreground text-sm">Closing Time</Label>
-                    <Input
-                      type="time"
-                      value={formData.operatingHours.closeTime}
-                      onChange={(e) => handleInputChange('operatingHours.closeTime', e.target.value)}
-                      className="bg-background/50 border-border/50"
-                    />
-                  </div>
                 </div>
               </div>
 
@@ -532,60 +456,10 @@ export default function CanteenSignupPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-
-                <div className="space-y-4">
-                  <Label className="text-foreground flex items-center gap-2">
-                    <Upload className="h-4 w-4 text-[#e78a53]" />
-                    Business License
-                  </Label>
-                  <div className="border-2 border-dashed border-border/50 rounded-lg p-4 text-center">
-                    <input
-                      type="file"
-                      accept=".pdf,.jpg,.png"
-                      onChange={(e) => handleFileUpload(e, 'businessLicense')}
-                      className="hidden"
-                      id="business-upload"
-                    />
-                    <label htmlFor="business-upload" className="cursor-pointer">
-                      <Upload className="h-6 w-6 text-[#e78a53] mx-auto mb-2" />
-                      <p className="text-foreground text-sm">
-                        {formData.businessLicense ? formData.businessLicense.name : 'Upload license'}
-                      </p>
-                      <p className="text-xs text-muted-foreground">PDF, JPG, PNG</p>
-                    </label>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <Label className="text-foreground flex items-center gap-2">
-                    <Upload className="h-4 w-4 text-[#e78a53]" />
-                    Food License (FSSAI)
-                  </Label>
-                  <div className="border-2 border-dashed border-border/50 rounded-lg p-4 text-center">
-                    <input
-                      type="file"
-                      accept=".pdf,.jpg,.png"
-                      onChange={(e) => handleFileUpload(e, 'foodLicense')}
-                      className="hidden"
-                      id="food-upload"
-                    />
-                    <label htmlFor="food-upload" className="cursor-pointer">
-                      <Upload className="h-6 w-6 text-[#e78a53] mx-auto mb-2" />
-                      <p className="text-foreground text-sm">
-                        {formData.foodLicense ? formData.foodLicense.name : 'Upload license'}
-                      </p>
-                      <p className="text-xs text-muted-foreground">PDF, JPG, PNG</p>
-                    </label>
-                  </div>
-                </div>
-              </div>
-
               <div className="space-y-2">
                 <Label className="text-foreground flex items-center gap-2">
                   <FileText className="h-4 w-4 text-[#e78a53]" />
-                  Business Description
+                  Description
                 </Label>
                 <Textarea
                   value={formData.description}

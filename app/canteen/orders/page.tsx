@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { CanteenSidebar } from "@/components/canteen-sidebar"
+import { UserMenu } from "@/components/user-menu"
 import {
   ClipboardList,
   Clock,
@@ -22,7 +23,8 @@ import {
   Truck,
   ShoppingCart,
   Calendar,
-  TrendingUp
+  TrendingUp,
+  Bell
 } from "lucide-react"
 
 export default function CanteenOrdersPage() {
@@ -206,7 +208,7 @@ export default function CanteenOrdersPage() {
                 <h1 className="text-3xl font-bold text-white mb-2">Order Management</h1>
                 <p className="text-zinc-400">Manage current orders and view order history</p>
               </div>
-              <div className="flex gap-4">
+              <div className="flex items-center gap-4">
                 <div className="relative">
                   <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-400" />
                   <Input 
@@ -222,6 +224,10 @@ export default function CanteenOrdersPage() {
                   <Download className="h-4 w-4 mr-2" />
                   Export
                 </Button>
+                <Button variant="ghost" size="icon">
+                  <Bell className="h-5 w-5 text-zinc-400" />
+                </Button>
+                <UserMenu />
               </div>
             </div>
           </div>

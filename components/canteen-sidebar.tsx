@@ -64,7 +64,16 @@ export function CanteenSidebar({ className = "" }: SidebarProps) {
           <Button variant="ghost" size="icon">
             <Settings className="h-5 w-5 text-zinc-400" />
           </Button>
-          <Button variant="ghost" size="icon">
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={() => {
+              localStorage.removeItem('currentUser')
+              localStorage.removeItem('isLoggedIn')
+              localStorage.removeItem('userRole')
+              window.location.href = '/'
+            }}
+          >
             <LogOut className="h-5 w-5 text-zinc-400" />
           </Button>
         </div>
