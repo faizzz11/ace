@@ -1,81 +1,111 @@
 # ACE Campus Platform
 
-A unified campus solution with role-based access and a dark orange theme.
+A unified campus solution with role-based access (Student, Teacher, Canteen, Admin-ready) in a dark black/orange theme.
 
-## Tech Stack
+## Features Overview
 
-- Next.js 14 App Router, React 18, TypeScript
-- TailwindCSS, Radix UI/shadcn, Framer Motion
-- MongoDB Atlas via Mongoose
+### Student
 
-## Setup
+- Timetable Management
+  - Days vertically, time slots horizontally
+  - Break slots highlighted and labeled
+  - Responsive grid with sticky headers
+- Food Ordering
+  - Category chips, search, filter
+  - Food cards: veg/spicy badges, rating, price, prep time
+  - Actions: Order Now, Schedule
+  - Recent orders section
+- Event Discovery
+  - Event cards with category badges, date/time/location/organizer
+  - Stats (upcoming count, participants, categories)
+  - Register action
+- Resource Booking (scaffold-ready)
+  - Library and seminar hall routes reserved
+- Campus Map (scaffold-ready)
+  - Route reserved for voice-based assistance
+- Attendance (view-only scaffold-ready)
+- Internship/Jobs (scaffold-ready)
 
-1. Install dependencies
+### Teacher
 
-```bash
-npm i
-```
+- Dashboard
+  - Quick links to primary tools: Timetable, Attendance, Food
+  - Profile dropdown with initials, name, role, logout
+- Timetable
+  - Same grid as Student with break slots
+- Attendance Management
+  - Date picker and section selector
+  - Mark all present/clear
+  - Per-student Present/Absent toggle
+  - Save action
+- Food Ordering
+  - Same UI/UX as Student (categories, search/filter, rich cards)
 
-2. Configure environment
+### Canteen (Phase 2 scaffolding)
 
-```env
-MONGODB_URI=
-```
+- Registration captures business and operations data
+- Planned modules
+  - Stock management
+  - Orders (current/completed/history)
+  - Queue and scheduled orders
 
-3. Run dev server
+### Admin (Phase 2 scaffolding)
 
-```bash
-npm run dev
-```
+- Events CRUD and publish
+- Internship/job posts CRUD
+- Approvals for teachers and canteen
 
-## Structure
+## Auth and Session
 
-```
-app/
-  api/
-    login/route.ts
-    signup/{student,teacher,canteen}/route.ts
-  login/page.tsx
-  signup/{page,student/page,teacher/page,canteen/page}.tsx
-  student/{dashboard,timetable,food}/page.tsx
-  teacher/{dashboard,timetable,food,attendance-management}/page.tsx
-components/{student-sidebar,teacher-sidebar,user-menu}.tsx
-lib/{db,models}.ts
-```
+- Login (Student, Teacher): `POST /api/login`
+  - Request: `{ email, password, role }`
+  - Response: `{ id, name, email, role, avatarInitials }`
+- Signup: `POST /api/signup/{student|teacher|canteen}`
+- Passwords hashed with bcrypt
+- Client session stored in `localStorage`: `isLoggedIn`, `userRole`, `currentUser`
+- User dropdown (`components/user-menu.tsx`)
+  - Shows initials-based avatar, name, role
+  - Logout clears local storage and redirects to `/`
 
-## Auth
+## UI/UX Highlights
 
-- Login: POST /api/login with { email, password, role }
-- Signup: POST /api/signup/{student|teacher|canteen}
-- Passwords hashed with bcryptjs
-- Client session in localStorage: isLoggedIn, userRole, currentUser
+- Global dark theme with orange accents
+- Consistent button/card styles via `components/ui/*`
+- Sidebars
+  - `StudentSidebar` and `TeacherSidebar` with active route state
+- Timetable grid
+  - Sticky first column and header row
+  - Horizontal scroll for many time slots
+- Accessibility
+  - High-contrast labels and focus outlines
 
-## Features
+## Data Models (MongoDB)
 
-- Timetable: days vertical, time slots horizontal, break slots
-- Food: student and teacher UIs match with categories, badges, actions
-- Attendance (teacher): section/date, mark all, per-student toggle, save
-- Profile dropdown: initials, name, role, logout
+- Student: core profile, academics, guardians, interests, skills, `avatarInitials`
+- Teacher: core profile, professional details, subjects, specializations, `avatarInitials`
+- Canteen: business, cuisines, operating hours, banking, `avatarInitials`
 
-## Theming
+## Key Routes Map
 
-- Black background with orange accents
-- Shared button/card styles in `components/ui/*` and `app/globals.css`
+- Student: `/student/dashboard`, `/student/timetable`, `/student/food`, `/student/events`, `/student/resources`, `/student/map`, `/student/attendance`, `/student/internships`
+- Teacher: `/teacher/dashboard`, `/teacher/timetable`, `/teacher/food`, `/teacher/attendance-management`
+- API: `/api/login`, `/api/signup/student`, `/api/signup/teacher`, `/api/signup/canteen`
 
-## Scripts
+## Quick Start
 
-```json
-{
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start"
-  }
-}
-```
+- Set `MONGODB_URI` in `.env.local`
+- `npm i` then `npm run dev`
+
+## Roadmap
+
+- Admin panel: Events and internships management
+- Resource booking: Library and seminar hall flows
+- Campus navigation with voice assistance
+- Razorpay integration for payments
+- Canteen stock, queues, scheduled pickups
 
 ## Troubleshooting
 
-- Verify MONGODB_URI for API 500s
-- Ensure matching role collection for login
-- Restart dev for Tailwind JIT issues
+- API 500: check `MONGODB_URI` and Atlas IP access
+- Login failure: ensure user exists for chosen role
+- CSS glitches: restart dev server to refresh Tailwind JIT
