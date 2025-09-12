@@ -27,6 +27,7 @@ const config = {
         "03:00 - 04:00",
     ] as TimeSlot[],
     days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"] as Day[],
+    breakSlots: ["12:00 - 01:00"] as TimeSlot[],
     entries: [
         { day: "Monday", time: "08:00 - 09:00", subject: "Data Structures", teacher: "Prof. Sharma" },
         { day: "Monday", time: "09:00 - 10:00", subject: "Mathematics", teacher: "Dr. Verma" },
@@ -69,8 +70,14 @@ export default function StudentTimetablePage() {
                             <div className="grid" style={{ gridTemplateColumns: `180px repeat(${config.timeSlots.length}, minmax(160px, 1fr))` }}>
                                 <div className="sticky left-0 z-10 bg-zinc-900/80 backdrop-blur-sm border-b border-zinc-800 px-4 py-3 text-sm font-semibold text-zinc-300">Day / Time</div>
                                 {config.timeSlots.map((slot) => (
-                                    <div key={slot} className="border-b border-l border-zinc-800 px-4 py-3 text-sm font-semibold text-zinc-300">
+                                    <div
+                                        key={slot}
+                                        className={`border-b border-l border-zinc-800 px-4 py-3 text-sm font-semibold ${config.breakSlots.includes(slot) ? 'text-[#e78a53]' : 'text-zinc-300'}`}
+                                    >
                                         {slot}
+                                        {config.breakSlots.includes(slot) && (
+                                            <span className="ml-2 text-xs text-[#e78a53]/80"></span>
+                                        )}
                                     </div>
                                 ))}
 
@@ -80,9 +87,14 @@ export default function StudentTimetablePage() {
                                         {config.timeSlots.map((slot) => {
                                             const key = `${day}|${slot}`
                                             const cell = matrix.get(key)
+                                            const isBreak = config.breakSlots.includes(slot)
                                             return (
-                                                <div key={key} className="border-t border-l border-zinc-800 px-4 py-3">
-                                                    {cell ? (
+                                                <div key={key} className={`border-t border-l border-zinc-800 px-4 py-3 ${isBreak ? 'bg-zinc-800/40' : ''}`}>
+                                                    {isBreak ? (
+                                                        <div className="flex items-center justify-center">
+                                                            <span className="text-[#e78a53] font-medium">Break</span>
+                                                        </div>
+                                                    ) : cell ? (
                                                         <div className="space-y-1">
                                                             <div className="text-white font-semibold tracking-wide">{cell.subject}</div>
                                                             <div className="text-xs text-[#e78a53]">{cell.teacher}</div>
