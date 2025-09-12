@@ -23,7 +23,6 @@ import {
   BookOpen,
   Calendar,
   Building,
-  Upload,
   X,
   Plus,
   ChevronLeft,
@@ -73,7 +72,6 @@ export default function TeacherSignupPage() {
     bio: "",
     specializations: [] as string[],
     profilePicture: null as File | null,
-    resume: null as File | null,
   })
 
   const [newSubject, setNewSubject] = useState("")
@@ -148,7 +146,7 @@ export default function TeacherSignupPage() {
     setFormData(prev => ({ ...prev, specializations: prev.specializations.filter(s => s !== specialization) }))
   }
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, field: 'profilePicture' | 'resume') => {
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, field: 'profilePicture') => {
     const file = e.target.files?.[0]
     if (file) {
       setFormData(prev => ({ ...prev, [field]: file }))
@@ -533,28 +531,7 @@ export default function TeacherSignupPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
 
-                <div className="space-y-4">
-                  <Label className="text-foreground flex items-center gap-2">
-                    <Upload className="h-4 w-4 text-[#e78a53]" />
-                    Resume/CV
-                  </Label>
-                  <div className="border-2 border-dashed border-border/50 rounded-lg p-6 text-center">
-                    <input
-                      type="file"
-                      accept=".pdf,.doc,.docx"
-                      onChange={(e) => handleFileUpload(e, 'resume')}
-                      className="hidden"
-                      id="resume-upload"
-                    />
-                    <label htmlFor="resume-upload" className="cursor-pointer">
-                      <Upload className="h-8 w-8 text-[#e78a53] mx-auto mb-2" />
-                      <p className="text-foreground">
-                        {formData.resume ? formData.resume.name : 'Click to upload'}
-                      </p>
-                      <p className="text-sm text-muted-foreground">PDF, DOC, DOCX up to 10MB</p>
-                    </label>
-                  </div>
-                </div>
+
               </div>
 
               <div className="space-y-2">
