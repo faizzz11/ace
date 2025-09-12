@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -45,6 +45,9 @@ import {
 export default function StudentSignupPage() {
   const [currentStep, setCurrentStep] = useState(1)
   const [isLoading, setIsLoading] = useState(false)
+  const [availableClasses, setAvailableClasses] = useState<string[]>([])
+  const [classDetails, setClassDetails] = useState<any[]>([])
+  const [isLoadingClasses, setIsLoadingClasses] = useState(true)
   const requiredStudentFields = [
     'firstName', 'lastName', 'email', 'password', 'confirmPassword', 'phone', 'gender', 'dateOfBirth', 'address',
     'studentId', 'course', 'branch', 'year', 'semester', 'rollNumber', 'section',
@@ -88,6 +91,30 @@ export default function StudentSignupPage() {
 
   const [newInterest, setNewInterest] = useState("")
   const [newSkill, setNewSkill] = useState("")
+
+  // Load available classes on component mount
+  useEffect(() => {
+    const loadAvailableClasses = async () => {
+      try {
+        setIsLoadingClasses(true)
+        const response = await fetch('/api/classes/available')
+        const data = await response.json()
+        
+        if (response.ok) {
+          setAvailableClasses(data.availableClasses || [])
+          setClassDetails(data.classDetails || [])
+        } else {
+          console.error('Failed to load classes:', data.error)
+        }
+      } catch (error) {
+        console.error('Error loading classes:', error)
+      } finally {
+        setIsLoadingClasses(false)
+      }
+    }
+    
+    loadAvailableClasses()
+  }, [])
 
   const courses = [
     "Computer Science Engineering",
@@ -425,13 +452,44 @@ export default function StudentSignupPage() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-foreground">Section</Label>
-                  <Input
-                    value={formData.section}
-                    onChange={(e) => handleInputChange('section', e.target.value)}
-                    placeholder="e.g., A, B, C"
-                    className="bg-background/50 border-border/50"
-                  />
+                  <Label className="text-foreground flex items-center gap-2">
+                    <Building className="h-4 w-4 text-[#e78a53]" />
+                    Class/Section
+                  </Label>
+                  {isLoadingClasses ? (
+                    <div className="bg-background/50 border-border/50 rounded-md p-3 text-center text-sm text-muted-foreground">
+                      Loading available classes...
+                    </div>
+                  ) : (
+                    <Select value={formData.section} onValueChange={(value) => handleInputChange('section', value)}>
+                      <SelectTrigger className="bg-background/50 border-border/50">
+                        <SelectValue placeholder="Select your class" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableClasses.map((className) => {
+                          const classDetail = classDetails.find(detail => detail.className === className)
+                          return (
+                            <SelectItem key={className} value={className}>
+                              <div className="flex flex-col">
+                                <span className="font-medium">{className}</span>
+                                {classDetail && (
+                                  <span className="text-xs text-muted-foreground">
+                                    {classDetail.subjectCount} subjects • {classDetail.teacherCount} teachers
+                                  </span>
+                                )}
+                              </div>
+                            </SelectItem>
+                          )
+                        })}
+                      </SelectContent>
+                    </Select>
+                  )}
+                  {formData.section && classDetails.find(detail => detail.className === formData.section) && (
+                    <div className="text-xs text-muted-foreground p-2 bg-muted/50 rounded">
+                      <p className="font-medium">Subjects in {formData.section}:</p>
+                      <p>{classDetails.find(detail => detail.className === formData.section)?.subjects.join(', ')}</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </CardContent>

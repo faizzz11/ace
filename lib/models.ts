@@ -101,7 +101,42 @@ const TimetableSchema = new Schema(
 // Create compound index for unique constraint on teacherId + day + timeSlot
 TimetableSchema.index({ teacherId: 1, day: 1, timeSlot: 1 }, { unique: true });
 
+const AttendanceSchema = new Schema(
+  {
+    teacherId: { type: Schema.Types.ObjectId, ref: 'Teacher', required: true },
+    studentId: { type: Schema.Types.ObjectId, ref: 'Student', required: true },
+    className: { type: String, required: true },
+    subjectName: { type: String, required: true },
+    date: { type: String, required: true }, // Format: YYYY-MM-DD
+    status: { type: String, enum: ['present', 'absent', 'late'], default: 'absent' },
+    timeSlot: { type: String }, // Optional: specific time slot
+    remarks: { type: String }, // Optional: teacher notes
+  },
+  { timestamps: true }
+);
+
+// Compound index for unique attendance record per student per class per date
+AttendanceSchema.index({ studentId: 1, teacherId: 1, className: 1, date: 1, subjectName: 1 }, { unique: true });
+
+const SectionSchema = new Schema(
+  {
+    teacherId: { type: Schema.Types.ObjectId, ref: 'Teacher', required: true },
+    className: { type: String, required: true },
+    subjectName: { type: String, required: true },
+    students: [{ type: Schema.Types.ObjectId, ref: 'Student' }],
+    academicYear: { type: String, required: true },
+    isActive: { type: Boolean, default: true },
+  },
+  { timestamps: true }
+);
+
+// Index for efficient querying
+SectionSchema.index({ teacherId: 1, className: 1, subjectName: 1 });
+SectionSchema.index({ className: 1 });
+
 export const StudentModel = models.Student || model("Student", StudentSchema);
 export const TeacherModel = models.Teacher || model("Teacher", TeacherSchema);
 export const CanteenModel = models.Canteen || model("Canteen", CanteenSchema);
 export const TimetableModel = models.Timetable || model("Timetable", TimetableSchema);
+export const AttendanceModel = models.Attendance || model("Attendance", AttendanceSchema);
+export const SectionModel = models.Section || model("Section", SectionSchema);
