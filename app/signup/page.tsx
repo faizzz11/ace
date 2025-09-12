@@ -10,33 +10,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
 export default function SignupPage() {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-  })
-  const [isLoading, setIsLoading] = useState(false)
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }))
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (formData.password !== formData.confirmPassword) {
-      console.log("[v0] Password mismatch")
-      return
-    }
-    setIsLoading(true)
-    // Simulate signup process
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    setIsLoading(false)
-    console.log("[v0] Signup attempt:", formData)
-  }
 
   return (
     <div className="min-h-screen bg-black flex items-center justify-center p-4">
@@ -64,125 +37,74 @@ export default function SignupPage() {
         className="relative z-10 w-full max-w-md"
       >
         {/* Header */}
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-block mb-6">
-            <div className="flex items-center justify-center space-x-2">
-              <svg
-                fill="currentColor"
-                viewBox="0 0 147 70"
-                xmlns="http://www.w3.org/2000/svg"
-                aria-hidden="true"
-                className="text-[#e78a53] rounded-full size-8 w-8"
-              >
-                <path d="M56 50.2031V14H70V60.1562C70 65.5928 65.5928 70 60.1562 70C57.5605 70 54.9982 68.9992 53.1562 67.1573L0 14H19.7969L56 50.2031Z"></path>
-                <path d="M147 56H133V23.9531L100.953 56H133V70H96.6875C85.8144 70 77 61.1856 77 50.3125V14H91V46.1562L123.156 14H91V0H127.312C138.186 0 147 8.81439 147 19.6875V56Z"></path>
-              </svg>
-            </div>
-          </Link>
-          <h1 className="text-3xl font-bold text-white mb-2">Create account</h1>
-          <p className="text-zinc-400">Join thousands of developers building with v0</p>
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-white mb-4">Join ACE Campus</h1>
+          <p className="text-zinc-400 text-lg">Choose your role to get started with our campus solution</p>
         </div>
 
-        {/* Signup Form */}
+        {/* Role Selection */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.1 }}
           className="bg-zinc-900/50 backdrop-blur-xl border border-zinc-800 rounded-2xl p-8"
         >
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="name" className="text-white">
-                Full Name
-              </Label>
-              <Input
-                id="name"
-                name="name"
-                type="text"
-                placeholder="Enter your full name"
-                value={formData.name}
-                onChange={handleChange}
-                className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-[#e78a53] focus:ring-[#e78a53]/20"
-                required
-              />
-            </div>
+          <h2 className="text-2xl font-semibold text-white mb-10 text-center">Choose Your Role</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 max-w-7xl mx-auto">
+            <Link href="/signup/student" className="block h-full">
+              <div className="h-full p-12 bg-zinc-800/50 border border-zinc-700 rounded-2xl hover:border-[#e78a53]/50 hover:bg-[#e78a53]/5 transition-all duration-300 cursor-pointer group text-center min-w-[320px]">
+                <div className="flex flex-col items-center gap-6 h-full justify-between">
+                  <div className="flex flex-col items-center gap-6">
+                    <div className="p-6 bg-[#e78a53]/10 rounded-2xl group-hover:bg-[#e78a53]/20 transition-colors">
+                      <svg className="w-10 h-10 text-[#e78a53]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-2xl font-bold text-white mb-3">Student</h3>
+                      <p className="text-zinc-400 text-base leading-relaxed">Access timetables, events, food ordering & more</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Link>
 
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-white">
-                Email
-              </Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="Enter your email"
-                value={formData.email}
-                onChange={handleChange}
-                className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-[#e78a53] focus:ring-[#e78a53]/20"
-                required
-              />
-            </div>
+            <Link href="/signup/teacher" className="block h-full">
+              <div className="h-full p-12 bg-zinc-800/50 border border-zinc-700 rounded-2xl hover:border-[#e78a53]/50 hover:bg-[#e78a53]/5 transition-all duration-300 cursor-pointer group text-center min-w-[320px]">
+                <div className="flex flex-col items-center gap-6 h-full justify-between">
+                  <div className="flex flex-col items-center gap-6">
+                    <div className="p-6 bg-[#e78a53]/10 rounded-2xl group-hover:bg-[#e78a53]/20 transition-colors">
+                      <svg className="w-10 h-10 text-[#e78a53]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-2xl font-bold text-white mb-3">Teacher</h3>
+                      <p className="text-zinc-400 text-base leading-relaxed">Manage timetables, attendance & food orders</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Link>
 
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-white">
-                Password
-              </Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                placeholder="Create a password"
-                value={formData.password}
-                onChange={handleChange}
-                className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-[#e78a53] focus:ring-[#e78a53]/20"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword" className="text-white">
-                Confirm Password
-              </Label>
-              <Input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                placeholder="Confirm your password"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-[#e78a53] focus:ring-[#e78a53]/20"
-                required
-              />
-            </div>
-
-            <div className="flex items-start space-x-2">
-              <input
-                type="checkbox"
-                id="terms"
-                className="mt-1 rounded border-zinc-700 bg-zinc-800 text-[#e78a53] focus:ring-[#e78a53]/20"
-                required
-              />
-              <label htmlFor="terms" className="text-sm text-zinc-300">
-                I agree to the{" "}
-                <Link href="#" className="text-[#e78a53] hover:text-[#e78a53]/80">
-                  Terms of Service
-                </Link>{" "}
-                and{" "}
-                <Link href="#" className="text-[#e78a53] hover:text-[#e78a53]/80">
-                  Privacy Policy
-                </Link>
-              </label>
-            </div>
-
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className="w-full bg-[#e78a53] hover:bg-[#e78a53]/90 text-white font-medium py-3 rounded-xl transition-colors"
-            >
-              {isLoading ? "Creating account..." : "Create account"}
-            </Button>
-          </form>
-
+            <Link href="/signup/canteen" className="block h-full">
+              <div className="h-full p-12 bg-zinc-800/50 border border-zinc-700 rounded-2xl hover:border-[#e78a53]/50 hover:bg-[#e78a53]/5 transition-all duration-300 cursor-pointer group text-center min-w-[320px]">
+                <div className="flex flex-col items-center gap-6 h-full justify-between">
+                  <div className="flex flex-col items-center gap-6">
+                    <div className="p-6 bg-[#e78a53]/10 rounded-2xl group-hover:bg-[#e78a53]/20 transition-colors">
+                      <svg className="w-10 h-10 text-[#e78a53]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.016a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.001 3.001 0 0 1-.621-4.72L4.318 3.44A1.5 1.5 0 0 1 5.378 3h13.243a1.06 1.06 0 0 1 1.06 1.06l1.39 1.39c.354.353.354.927 0 1.28L19.682 7.22A1.5 1.5 0 0 1 18.622 8H5.378a1.5 1.5 0 0 1-1.06-1.06L3.75 6.349Z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-2xl font-bold text-white mb-3">Canteen</h3>
+                      <p className="text-zinc-400 text-base leading-relaxed">Manage stock, orders & food queue system</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          </div>
           <div className="mt-6 text-center">
             <p className="text-zinc-400">
               Already have an account?{" "}
@@ -190,66 +112,6 @@ export default function SignupPage() {
                 Sign in
               </Link>
             </p>
-          </div>
-        </motion.div>
-
-        {/* Social Signup */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="mt-6"
-        >
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-zinc-800" />
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-black text-zinc-500">Or continue with</span>
-            </div>
-          </div>
-
-          <div className="mt-6 grid grid-cols-2 gap-3">
-            <Button
-              variant="outline"
-              className="bg-zinc-900/50 border-zinc-800 text-zinc-300 hover:bg-white hover:text-black hover:border-white transition-all duration-200 group"
-            >
-              <svg
-                className="w-5 h-5 mr-2 text-zinc-300 group-hover:text-black transition-colors duration-200"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  fill="currentColor"
-                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                />
-                <path
-                  fill="currentColor"
-                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                />
-                <path
-                  fill="currentColor"
-                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                />
-                <path
-                  fill="currentColor"
-                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                />
-              </svg>
-              Google
-            </Button>
-            <Button
-              variant="outline"
-              className="bg-zinc-900/50 border-zinc-800 text-zinc-300 hover:bg-white hover:text-black hover:border-white transition-all duration-200 group"
-            >
-              <svg
-                className="w-5 h-5 mr-2 text-zinc-300 group-hover:text-black transition-colors duration-200"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
-              </svg>
-              GitHub
-            </Button>
           </div>
         </motion.div>
       </motion.div>
