@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { TeacherSidebar } from "@/components/teacher-sidebar"
 import { UserMenu } from "@/components/user-menu"
+import { OrderDialog } from "@/components/order-dialog"
+import { OrderReceipt } from "@/components/order-receipt"
 import { Input } from "@/components/ui/input"
 import { 
   ShoppingCart, 
@@ -44,6 +46,10 @@ export default function TeacherFoodPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("All")
+  const [selectedMenuItem, setSelectedMenuItem] = useState<MenuItem | null>(null)
+  const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false)
+  const [isReceiptOpen, setIsReceiptOpen] = useState(false)
+  const [currentOrder, setCurrentOrder] = useState<any>(null)
 
   // Fetch menu items from API
   useEffect(() => {
@@ -90,6 +96,13 @@ export default function TeacherFoodPage() {
     avgRating: menuItems.length > 0 ? (menuItems.reduce((sum, item) => sum + item.rating, 0) / menuItems.length).toFixed(1) : "0",
     avgPrepTime: menuItems.length > 0 ? Math.round(menuItems.reduce((sum, item) => sum + item.prepTime, 0) / menuItems.length) : 0,
     canteenCount: new Set(menuItems.map(item => item.canteenId)).size
+  }
+
+  const handleOrderSuccess = (order: any) => {
+    setCurrentOrder(order)
+    setIsReceiptOpen(true)
+    // Refresh menu items to get updated availability
+    fetchMenuItems()
   }
 
   return (
@@ -317,6 +330,10 @@ export default function TeacherFoodPage() {
                         <Button 
                           className="flex-1 bg-[#e78a53] hover:bg-[#e78a53]/90" 
                           disabled={!item.isAvailable}
+                          onClick={() => {
+                            setSelectedMenuItem(item)
+                            setIsOrderDialogOpen(true)
+                          }}
                         >
                           <ShoppingCart className="h-4 w-4 mr-2" />
                           Order Now
@@ -337,6 +354,27 @@ export default function TeacherFoodPage() {
             </div>
           )}
         </div>
+
+        {/* Order Dialog */}
+        <OrderDialog
+          isOpen={isOrderDialogOpen}
+          onClose={() => {
+            setIsOrderDialogOpen(false)
+            setSelectedMenuItem(null)
+          }}
+          menuItem={selectedMenuItem}
+          onOrderSuccess={handleOrderSuccess}
+        />
+
+        {/* Order Receipt */}
+        <OrderReceipt
+          isOpen={isReceiptOpen}
+          onClose={() => {
+            setIsReceiptOpen(false)
+            setCurrentOrder(null)
+          }}
+          order={currentOrder}
+        />
       </main>
     </div>
   )
