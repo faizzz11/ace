@@ -30,6 +30,8 @@ import {
   CheckCircle,
   XCircle,
   Package,
+  Camera,
+  Upload,
   X
 } from "lucide-react"
 import { redirectIfNotAuthenticatedAdmin } from '@/lib/auth-middleware'
@@ -46,6 +48,7 @@ interface Resource {
   condition: 'excellent' | 'good' | 'fair' | 'damaged'
   status: 'active' | 'maintenance' | 'retired'
   tags: string[]
+  image?: string
   
   // For Books
   isbn?: string
@@ -95,6 +98,10 @@ export default function AdminResourcesPage() {
   const [editingResource, setEditingResource] = useState<Resource | null>(null)
   const [detailModalOpen, setDetailModalOpen] = useState(false)
   const [selectedResource, setSelectedResource] = useState<Resource | null>(null)
+  
+  // Image handling
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
   
   // Form data
   const [formData, setFormData] = useState({
@@ -182,6 +189,18 @@ export default function AdminResourcesPage() {
     setFilteredResources(filtered)
   }
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setImageFile(file)
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
   const openModal = (resource?: Resource) => {
     if (resource) {
       setEditingResource(resource)
@@ -215,8 +234,11 @@ export default function AdminResourcesPage() {
         amenities: resource.amenities?.join(', ') || '',
         operatingHours: resource.operatingHours || { start: '09:00', end: '17:00' }
       })
+      setImagePreview(resource.image || null)
     } else {
       setEditingResource(null)
+      setImagePreview(null)
+      setImageFile(null)
       setFormData({
         name: '',
         description: '',
@@ -268,6 +290,7 @@ export default function AdminResourcesPage() {
         requiresApproval: formData.requiresApproval,
         maxBorrowDuration: formData.maxBorrowDuration ? parseInt(formData.maxBorrowDuration) : null,
         tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag) : [],
+        image: imagePreview,
         
         // Category-specific fields
         ...(formData.category === 'book' && {
@@ -474,7 +497,7 @@ export default function AdminResourcesPage() {
           </Card>
 
           {/* Resources List */}
-          <div className="grid gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {isLoading ? (
               <div className="flex justify-center py-8">
                 <Loader2 className="h-8 w-8 animate-spin text-[#e78a53]" />
@@ -488,15 +511,78 @@ export default function AdminResourcesPage() {
               </Card>
             ) : (
               filteredResources.map((resource) => (
-                <Card key={resource._id} className="bg-zinc-900/50 border-zinc-800 hover:border-zinc-700 transition-colors">
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          {resource.category === 'book' && <BookOpen className="h-5 w-5 text-[#e78a53]" />}
-                          {resource.category === 'equipment' && <Laptop className="h-5 w-5 text-[#e78a53]" />}
-                          {resource.category === 'facility' && <Building2 className="h-5 w-5 text-[#e78a53]" />}
-                          <h3 className="text-xl font-semibold text-white">{resource.name}</h3>
+                <Card key={resource._id} className="bg-zinc-900/50 border-zinc-800 hover:border-zinc-700 transition-colors group">
+                  <CardContent className="p-0">
+                    {/* Image Section */}
+                    <div className="relative h-56 bg-zinc-800 rounded-t-lg overflow-hidden">
+                      {resource.image ? (
+                        <img 
+                          src={resource.image} 
+                          alt={resource.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          {resource.category === 'book' && <BookOpen className="h-12 w-12 text-zinc-600" />}
+                          {resource.category === 'equipment' && <Laptop className="h-12 w-12 text-zinc-600" />}
+                          {resource.category === 'facility' && <Building2 className="h-12 w-12 text-zinc-600" />}
+                        </div>
+                      )}
+                      
+                      {/* Status Badge */}
+                      <div className="absolute top-3 left-3">
+                        {resource.isAvailable ? (
+                          <Badge className="bg-green-500/20 border-green-500/30 text-green-400">
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            Available
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-red-500/20 border-red-500/30 text-red-400">
+                            <XCircle className="h-3 w-3 mr-1" />
+                            {resource.currentBorrower ? 'Borrowed' : 'Unavailable'}
+                          </Badge>
+                        )}
+                      </div>
+                      
+                      {/* Action Buttons */}
+                      <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="bg-zinc-900/80 border-zinc-700 text-zinc-300 hover:text-white"
+                            onClick={() => {
+                              setSelectedResource(resource)
+                              setDetailModalOpen(true)
+                            }}
+                          >
+                            <Eye className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="bg-zinc-900/80 border-zinc-700 text-zinc-300 hover:text-white"
+                            onClick={() => openModal(resource)}
+                          >
+                            <Edit className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="bg-red-500/20 border-red-500/50 text-red-400 hover:bg-red-500/30"
+                            onClick={() => deleteResource(resource._id)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Content Section */}
+                    <div className="p-7">
+                      <div className="flex items-start justify-between mb-3">
+                        <h3 className="text-2xl font-semibold text-white leading-tight pr-2">{resource.name}</h3>
+                        <div className="flex gap-2 flex-wrap ml-3">
                           <Badge className={getStatusBadge(resource.status)}>
                             {resource.status}
                           </Badge>
@@ -507,22 +593,12 @@ export default function AdminResourcesPage() {
                           <Badge className={getConditionBadge(resource.condition)}>
                             {resource.condition}
                           </Badge>
-                          {resource.isAvailable ? (
-                            <Badge className="bg-green-500/20 border-green-500/30 text-green-400">
-                              <CheckCircle className="h-3 w-3 mr-1" />
-                              Available
-                            </Badge>
-                          ) : (
-                            <Badge className="bg-red-500/20 border-red-500/30 text-red-400">
-                              <XCircle className="h-3 w-3 mr-1" />
-                              {resource.currentBorrower ? 'Borrowed' : 'Unavailable'}
-                            </Badge>
-                          )}
                         </div>
+                      </div>
                         
-                        <p className="text-zinc-400 mb-4 line-clamp-2">{resource.description}</p>
+                        <p className="text-zinc-400 mb-5 line-clamp-2 text-base">{resource.description}</p>
                         
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mb-4">
                           <div className="flex items-center gap-2 text-zinc-300">
                             <MapPin className="h-4 w-4" />
                             {resource.location}
@@ -578,37 +654,6 @@ export default function AdminResourcesPage() {
                             </Badge>
                           </div>
                         )}
-                      </div>
-                      
-                      <div className="flex items-center gap-2 ml-4">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            setSelectedResource(resource)
-                            setDetailModalOpen(true)
-                          }}
-                          className="border-zinc-700 text-zinc-400 hover:text-white"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => openModal(resource)}
-                          className="border-zinc-700 text-zinc-400 hover:text-white"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => deleteResource(resource._id)}
-                          className="border-red-600 text-red-400 hover:bg-red-600/20"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -711,6 +756,57 @@ export default function AdminResourcesPage() {
                       <SelectItem value="damaged">Damaged</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+              </div>
+              
+              {/* Image Upload Section */}
+              <div className="space-y-4">
+                <Label className="text-zinc-300">Resource Image</Label>
+                <div className="border-2 border-dashed border-zinc-700 rounded-lg p-6 text-center">
+                  {imagePreview ? (
+                    <div className="relative">
+                      <img 
+                        src={imagePreview} 
+                        alt="Preview" 
+                        className="w-full h-48 object-cover rounded-lg mb-4"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setImagePreview(null)
+                          setImageFile(null)
+                        }}
+                        className="absolute top-2 right-2 bg-red-500/20 border-red-500/50 text-red-400 hover:bg-red-500/30"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="py-8">
+                      <Camera className="h-12 w-12 text-zinc-400 mx-auto mb-4" />
+                      <p className="text-zinc-400 mb-2">Upload resource image</p>
+                      <p className="text-zinc-500 text-sm">{formData.category === 'book' ? 'Book cover image' : 
+                                                             formData.category === 'equipment' ? 'Equipment photo' : 
+                                                             formData.category === 'facility' ? 'Hall/room photo' : 'PNG, JPG up to 5MB'}</p>
+                    </div>
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                    id="image-upload"
+                  />
+                  <label htmlFor="image-upload">
+                    <Button type="button" variant="outline" className="border-zinc-700 text-zinc-400 hover:text-white" asChild>
+                      <span className="cursor-pointer">
+                        <Upload className="h-4 w-4 mr-2" />
+                        {imagePreview ? "Change Image" : "Upload Image"}
+                      </span>
+                    </Button>
+                  </label>
                 </div>
               </div>
               

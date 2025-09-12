@@ -7,8 +7,11 @@ export const dynamic = "force-dynamic";
 
 // GET - Fetch all resources
 export async function GET(request: Request) {
+  console.log('GET /api/admin/resources called');
   try {
+    console.log('Connecting to database...');
     await connectToDatabase();
+    console.log('Database connected successfully');
     const { searchParams } = new URL(request.url);
     const category = searchParams.get('category');
     const status = searchParams.get('status');
@@ -31,14 +34,17 @@ export async function GET(request: Request) {
     }
 
     const skip = (page - 1) * limit;
+    console.log('Executing query:', JSON.stringify(query));
     const resources = await ResourceModel.find(query)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
+    console.log('Found resources:', resources.length);
 
     const total = await ResourceModel.countDocuments(query);
+    console.log('Total resources:', total);
 
-    return NextResponse.json({
+    const response = {
       resources,
       pagination: {
         page,
@@ -46,11 +52,28 @@ export async function GET(request: Request) {
         total,
         pages: Math.ceil(total / limit)
       }
-    });
+    };
+    
+    console.log('Sending response with', resources.length, 'resources');
+    return NextResponse.json(response);
   } catch (error: any) {
     console.error("Error fetching resources:", error);
+    console.error("Error stack:", error.stack);
+    
+    // Check if it's a database connection error
+    if (error.name === 'MongoNetworkError' || error.name === 'MongooseError') {
+      return NextResponse.json(
+        { error: "Database connection failed: " + error.message },
+        { status: 503 }
+      );
+    }
+    
     return NextResponse.json(
-      { error: error.message || "Failed to fetch resources" },
+      { 
+        error: error.message || "Failed to fetch resources",
+        errorType: error.name || 'Unknown',
+        details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      },
       { status: 500 }
     );
   }
@@ -104,6 +127,7 @@ export async function POST(request: Request) {
       requiresApproval: resourceData.requiresApproval || false,
       maxBorrowDuration: resourceData.maxBorrowDuration || null,
       tags: resourceData.tags || [],
+      image: resourceData.image || null,
       totalBorrows: 0,
       currentBorrower: null,
       dueDate: null
