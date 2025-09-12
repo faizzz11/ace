@@ -59,20 +59,13 @@ const TeacherSchema = new Schema(
 
 const CanteenSchema = new Schema(
   {
-    businessName: { type: String, required: true },
     ownerName: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     phone: { type: String, required: true },
     alternatePhone: { type: String },
-    address: { type: String, required: true },
     gstNumber: { type: String },
-    licenseNumber: { type: String, required: true },
     cuisineTypes: [{ type: String, required: true }],
-    operatingHours: {
-      openTime: { type: String, required: true },
-      closeTime: { type: String, required: true },
-    },
     seatingCapacity: { type: String, required: true },
     servingCapacity: { type: String, required: true },
     emergencyContactName: { type: String, required: true },
@@ -136,7 +129,15 @@ SectionSchema.index({ className: 1 });
 
 export const StudentModel = models.Student || model("Student", StudentSchema);
 export const TeacherModel = models.Teacher || model("Teacher", TeacherSchema);
-export const CanteenModel = models.Canteen || model("Canteen", CanteenSchema);
+
+// Force recreate the Canteen model to ensure schema changes are applied
+try {
+  mongoose.deleteModel("Canteen");
+} catch (e) {
+  // Model doesn't exist yet, that's fine
+}
+export const CanteenModel = model("Canteen", CanteenSchema);
+
 export const TimetableModel = models.Timetable || model("Timetable", TimetableSchema);
 export const AttendanceModel = models.Attendance || model("Attendance", AttendanceSchema);
 export const SectionModel = models.Section || model("Section", SectionSchema);

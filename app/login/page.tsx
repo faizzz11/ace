@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label"
 export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [role, setRole] = useState<'student' | 'teacher'>('student')
+  const [role, setRole] = useState<'student' | 'teacher' | 'canteen'>('student')
   const [isLoading, setIsLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -33,7 +33,12 @@ export default function LoginPage() {
       localStorage.setItem('isLoggedIn', 'true')
       localStorage.setItem('userRole', role)
       localStorage.setItem('currentUser', JSON.stringify(data))
-      window.location.href = role === 'student' ? '/student/dashboard' : '/teacher/dashboard'
+      const dashboardUrls = {
+        student: '/student/dashboard',
+        teacher: '/teacher/dashboard',
+        canteen: '/canteen/dashboard'
+      }
+      window.location.href = dashboardUrls[role]
     } catch (err) {
       alert('Network error')
       setIsLoading(false)
@@ -83,6 +88,7 @@ export default function LoginPage() {
           >
             <option value="student">Student</option>
             <option value="teacher">Teacher</option>
+            <option value="canteen">Canteen Manager</option>
           </select>
         </div>
 

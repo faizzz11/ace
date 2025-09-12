@@ -31,7 +31,7 @@ export default function AiMentor() {
           <div className="px-8 py-6">
             <div className="flex justify-between items-center">
               <div>
-                <h1 className="text-3xl font-bold text-white mb-2">Campus Map</h1>
+                <h1 className="text-3xl font-bold text-white mb-2">AI Mentor</h1>
                 <p className="text-zinc-400">Connect with your AI assistant for personalized help</p>
               </div>
               <div className="flex items-center gap-2">
@@ -48,7 +48,7 @@ export default function AiMentor() {
         <div className="p-8">
           {/* AI Mentor Call Section */}
           <div className="mb-10">
-            <Card className="bg-gradient-to-br from-zinc-900 to-zinc-950 border-zinc-800">
+            <Card className="bg-zinc-900/50 border-zinc-800 hover:border-[#e78a53]/40 transition-colors">
               <CardContent className="p-8">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   {/* Left side - Call information */}
@@ -65,7 +65,7 @@ export default function AiMentor() {
                         <label htmlFor="phoneNumber" className="text-sm text-zinc-400">
                           Enter your number and receive a call from your AI Mentor
                         </label>
-                        <div className="bg-zinc-800/50 rounded-md p-4 border border-zinc-700">
+                        <div className="bg-zinc-800/50 rounded-md p-4 border border-[#e78a53]/30">
                           <CallButton assistantId={'ceef39a6-442c-41a4-a7a8-69558b77c11e'} />
                         </div>
                       </div>
@@ -124,15 +124,13 @@ export default function AiMentor() {
                     <MessageSquare className="h-5 w-5 inline-block mr-2 text-[#e78a53]" />
                     Example Use Cases
                   </h3>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     {/* Student Use Cases */}
                     <Card className="bg-zinc-900/70 border-zinc-800 hover:border-[#e78a53]/30 transition-colors">
                       <CardHeader className="pb-2">
                         <div className="flex items-center gap-2">
-                          <Badge className="bg-blue-500/10 text-blue-400 border-blue-500/20 border">
-                            Student
-                          </Badge>
+                          <Badge className="bg-[#e78a53]/10 text-[#e78a53] border-[#e78a53]/30 border">Student</Badge>
                         </div>
                         <CardTitle className="text-white text-md">🎓 Student Queries</CardTitle>
                       </CardHeader>
@@ -162,9 +160,7 @@ export default function AiMentor() {
                     <Card className="bg-zinc-900/70 border-zinc-800 hover:border-[#e78a53]/30 transition-colors">
                       <CardHeader className="pb-2">
                         <div className="flex items-center gap-2">
-                          <Badge className="bg-blue-500/10 text-blue-400 border-blue-500/20 border">
-                            Student+
-                          </Badge>
+                          <Badge className="bg-[#e78a53]/10 text-[#e78a53] border-[#e78a53]/30 border">Student+</Badge>
                         </div>
                         <CardTitle className="text-white text-md">🎓 More Student Queries</CardTitle>
                       </CardHeader>
@@ -190,9 +186,7 @@ export default function AiMentor() {
                     <Card className="bg-zinc-900/70 border-zinc-800 hover:border-[#e78a53]/30 transition-colors">
                       <CardHeader className="pb-2">
                         <div className="flex items-center gap-2">
-                          <Badge className="bg-purple-500/10 text-purple-400 border-purple-500/20 border">
-                            Teacher
-                          </Badge>
+                          <Badge className="bg-[#e78a53]/10 text-[#e78a53] border-[#e78a53]/30 border">Teacher</Badge>
                         </div>
                         <CardTitle className="text-white text-md">👩‍🏫 Teacher Queries</CardTitle>
                       </CardHeader>
@@ -218,9 +212,7 @@ export default function AiMentor() {
                     <Card className="bg-zinc-900/70 border-zinc-800 hover:border-[#e78a53]/30 transition-colors">
                       <CardHeader className="pb-2">
                         <div className="flex items-center gap-2">
-                          <Badge className="bg-green-500/10 text-green-400 border-green-500/20 border">
-                            Canteen & Admin
-                          </Badge>
+                          <Badge className="bg-[#e78a53]/10 text-[#e78a53] border-[#e78a53]/30 border">Canteen & Admin</Badge>
                         </div>
                         <CardTitle className="text-white text-md">🍲 Canteen & 🛠️ Admin</CardTitle>
                       </CardHeader>

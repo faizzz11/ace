@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { CanteenSidebar } from "@/components/canteen-sidebar"
+import { UserMenu } from "@/components/user-menu"
 import {
   TrendingUp,
   DollarSign,
@@ -18,7 +19,8 @@ import {
   ArrowUp,
   ArrowDown,
   Filter,
-  Download
+  Download,
+  Bell
 } from "lucide-react"
 
 export default function CanteenDashboard() {
@@ -88,7 +90,7 @@ export default function CanteenDashboard() {
                 <h1 className="text-3xl font-bold text-white mb-2">Canteen Dashboard</h1>
                 <p className="text-zinc-400">Monitor sales, orders, and inventory in real-time</p>
               </div>
-              <div className="flex gap-4">
+              <div className="flex items-center gap-4">
                 <Button variant="outline" className="border-zinc-700 text-zinc-400 hover:text-white">
                   <Filter className="h-4 w-4 mr-2" />
                   Filter
@@ -97,6 +99,10 @@ export default function CanteenDashboard() {
                   <Download className="h-4 w-4 mr-2" />
                   Export Report
                 </Button>
+                <Button variant="ghost" size="icon">
+                  <Bell className="h-5 w-5 text-zinc-400" />
+                </Button>
+                <UserMenu />
               </div>
             </div>
           </div>

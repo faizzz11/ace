@@ -10,17 +10,16 @@ export async function POST(request: Request) {
   try {
     await connectToDatabase();
     const body = await request.json();
+    
+    // Debug: Log the received data
+    console.log("Received canteen signup data:", JSON.stringify(body, null, 2));
 
     const requiredFields = [
-      "businessName",
       "ownerName",
       "email",
       "password",
       "phone",
-      "address",
-      "licenseNumber",
       "cuisineTypes",
-      "operatingHours",
       "seatingCapacity",
       "servingCapacity",
       "emergencyContactName",
@@ -28,8 +27,6 @@ export async function POST(request: Request) {
       "bankAccountNumber",
       "bankIFSC",
       "panNumber",
-      "operatingHours.openTime",
-      "operatingHours.closeTime",
     ];
 
     for (const field of requiredFields) {
@@ -60,16 +57,36 @@ export async function POST(request: Request) {
       );
 
     const hashed = await bcrypt.hash(body.password, 10);
-    body.password = hashed;
-    body.avatarInitials = `${
-      body.businessName
-        ?.split(" ")
-        ?.map((p: string) => p[0])
-        .join("")
-        .slice(0, 2) || ""
-    }`.toUpperCase();
+    
+    // Create clean data object with only the fields we want
+    const canteenData = {
+      ownerName: body.ownerName,
+      email: body.email,
+      password: hashed,
+      phone: body.phone,
+      alternatePhone: body.alternatePhone,
+      gstNumber: body.gstNumber,
+      cuisineTypes: body.cuisineTypes,
+      seatingCapacity: body.seatingCapacity,
+      servingCapacity: body.servingCapacity,
+      emergencyContactName: body.emergencyContactName,
+      emergencyContactPhone: body.emergencyContactPhone,
+      bankAccountNumber: body.bankAccountNumber,
+      bankIFSC: body.bankIFSC,
+      panNumber: body.panNumber,
+      description: body.description,
+      specialities: body.specialities,
+      avatarInitials: `${
+        body.ownerName
+          ?.split(" ")
+          ?.map((p: string) => p[0])
+          .join("")
+          .slice(0, 2) || ""
+      }`.toUpperCase(),
+    };
 
-    const canteen = await CanteenModel.create(body);
+    console.log("Filtered canteen data:", JSON.stringify(canteenData, null, 2));
+    const canteen = await CanteenModel.create(canteenData);
     return NextResponse.json({ id: canteen._id }, { status: 201 });
   } catch (e: any) {
     if (e?.code === 11000) {
