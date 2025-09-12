@@ -22,9 +22,18 @@ import {
   Mail,
   Phone,
   Globe,
-  AlertCircle
+  AlertCircle,
+  Upload,
+  FileText,
+  CheckCircle,
+  Loader2,
+  X
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useEffect, useState } from "react"
 
 interface Internship {
@@ -63,8 +72,30 @@ export default function StudentInternshipsPage() {
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [selectedLocationType, setSelectedLocationType] = useState('All')
   const [stats, setStats] = useState({ totalActive: 0, totalRemote: 0, totalApplications: 0, closingSoon: 0 })
+  
+  // Application modal states
+  const [applicationModalOpen, setApplicationModalOpen] = useState(false)
+  const [selectedInternship, setSelectedInternship] = useState<Internship | null>(null)
+  const [resumeFile, setResumeFile] = useState<File | null>(null)
+  const [coverLetter, setCoverLetter] = useState('')
+  const [applicationLoading, setApplicationLoading] = useState(false)
+  const [applicationError, setApplicationError] = useState<string | null>(null)
+  const [applicationSuccess, setApplicationSuccess] = useState(false)
+  const [appliedInternships, setAppliedInternships] = useState<Set<string>>(new Set())
+  const [currentUser, setCurrentUser] = useState<any>(null)
 
   useEffect(() => {
+    // Load current user
+    try {
+      const user = localStorage.getItem('currentUser')
+      if (user) {
+        const userData = JSON.parse(user)
+        setCurrentUser(userData)
+      }
+    } catch (error) {
+      console.error('Error loading user data:', error)
+    }
+    
     fetchInternships()
     
     // Set up real-time polling to fetch new data every 30 seconds
@@ -74,6 +105,12 @@ export default function StudentInternshipsPage() {
     
     return () => clearInterval(interval)
   }, [])
+  
+  useEffect(() => {
+    if (currentUser) {
+      fetchUserApplications()
+    }
+  }, [currentUser])
 
   const fetchInternships = async () => {
     try {
@@ -90,6 +127,115 @@ export default function StudentInternshipsPage() {
       setError('Failed to load internships. Please try again later.')
     } finally {
       setLoading(false)
+    }
+  }
+  
+  const fetchUserApplications = async () => {
+    if (!currentUser) return
+    
+    try {
+      const response = await fetch(`/api/student/internships/apply?studentId=${currentUser._id || currentUser.id}`)
+      if (response.ok) {
+        const data = await response.json()
+        const appliedIds = new Set(data.applications.map((app: any) => app.internshipId._id))
+        setAppliedInternships(appliedIds)
+      }
+    } catch (error) {
+      console.error('Error fetching user applications:', error)
+    }
+  }
+  
+  const openApplicationModal = (internship: Internship) => {
+    setSelectedInternship(internship)
+    setApplicationModalOpen(true)
+    setApplicationError(null)
+    setApplicationSuccess(false)
+    setCoverLetter('')
+    setResumeFile(null)
+  }
+  
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      // Validate file type
+      const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+      if (!allowedTypes.includes(file.type)) {
+        setApplicationError('Please upload a PDF or DOC/DOCX file')
+        return
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setApplicationError('File size should not exceed 5MB')
+        return
+      }
+      
+      setResumeFile(file)
+      setApplicationError(null)
+    }
+  }
+  
+  const submitApplication = async () => {
+    if (!selectedInternship || !resumeFile) {
+      setApplicationError('Please upload a resume')
+      return
+    }
+    
+    // Get current user from localStorage
+    const userStr = localStorage.getItem('currentUser')
+    if (!userStr) {
+      setApplicationError('Please login to apply for internships')
+      return
+    }
+    
+    let userData
+    try {
+      userData = JSON.parse(userStr)
+    } catch (error) {
+      setApplicationError('Session error. Please login again.')
+      return
+    }
+    
+    setApplicationLoading(true)
+    setApplicationError(null)
+    
+    try {
+      const formData = new FormData()
+      formData.append('internshipId', selectedInternship._id)
+      formData.append('studentId', userData._id || userData.id)
+      formData.append('resume', resumeFile)
+      formData.append('coverLetter', coverLetter)
+      
+      const response = await fetch('/api/student/internships/apply', {
+        method: 'POST',
+        body: formData
+      })
+      
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to submit application')
+      }
+      
+      setApplicationSuccess(true)
+      setAppliedInternships(prev => new Set([...prev, selectedInternship._id]))
+      
+      // Update internship count locally
+      setInternships(prev => prev.map(internship => 
+        internship._id === selectedInternship._id 
+          ? { ...internship, applicationCount: internship.applicationCount + 1 }
+          : internship
+      ))
+      
+      setTimeout(() => {
+        setApplicationModalOpen(false)
+        setApplicationSuccess(false)
+      }, 2000)
+      
+    } catch (error: any) {
+      setApplicationError(error.message || 'Failed to submit application')
+    } finally {
+      setApplicationLoading(false)
     }
   }
 
@@ -423,13 +569,24 @@ export default function StudentInternshipsPage() {
                     </div>
 
                     <div className="flex gap-2">
-                      <Button 
-                        className="flex-1 bg-[#e78a53] hover:bg-[#e78a53]/90"
-                        disabled={new Date(internship.applicationDeadline) < new Date()}
-                      >
-                        <Send className="h-4 w-4 mr-2" />
-                        {new Date(internship.applicationDeadline) < new Date() ? 'Expired' : 'Apply Now'}
-                      </Button>
+                      {appliedInternships.has(internship._id) ? (
+                        <Button 
+                          className="flex-1 bg-green-600 hover:bg-green-700 cursor-not-allowed"
+                          disabled
+                        >
+                          <CheckCircle className="h-4 w-4 mr-2" />
+                          Already Applied
+                        </Button>
+                      ) : (
+                        <Button 
+                          className="flex-1 bg-[#e78a53] hover:bg-[#e78a53]/90"
+                          disabled={new Date(internship.applicationDeadline) < new Date()}
+                          onClick={() => openApplicationModal(internship)}
+                        >
+                          <Send className="h-4 w-4 mr-2" />
+                          {new Date(internship.applicationDeadline) < new Date() ? 'Expired' : 'Apply Now'}
+                        </Button>
+                      )}
                       <Button variant="outline" className="border-zinc-700 text-zinc-400 hover:text-white">
                         <BookmarkPlus className="h-4 w-4" />
                       </Button>
@@ -475,6 +632,163 @@ export default function StudentInternshipsPage() {
           </Card>
         </div>
       </main>
+      
+      {/* Application Modal */}
+      <Dialog open={applicationModalOpen} onOpenChange={setApplicationModalOpen}>
+        <DialogContent className="bg-zinc-900 border-zinc-800 text-white max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Briefcase className="h-5 w-5 text-[#e78a53]" />
+              Apply for Internship
+            </DialogTitle>
+            <DialogDescription className="text-zinc-400">
+              Submit your application for {selectedInternship?.title} at {selectedInternship?.company}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-6 mt-4">
+            {applicationSuccess ? (
+              <div className="text-center py-8">
+                <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-white mb-2">Application Submitted!</h3>
+                <p className="text-zinc-400">Your application has been successfully submitted.</p>
+              </div>
+            ) : (
+              <>
+                {applicationError && (
+                  <Alert className="border-red-500/30 bg-red-500/10">
+                    <AlertCircle className="h-4 w-4 text-red-400" />
+                    <AlertDescription className="text-red-400">
+                      {applicationError}
+                    </AlertDescription>
+                  </Alert>
+                )}
+                
+                {/* Resume Upload */}
+                <div>
+                  <Label className="text-zinc-300 mb-2 block">Resume *</Label>
+                  <div className="border-2 border-dashed border-zinc-700 rounded-lg p-6 text-center">
+                    {resumeFile ? (
+                      <div className="flex items-center justify-between p-3 bg-zinc-800/50 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <FileText className="h-5 w-5 text-[#e78a53]" />
+                          <div className="text-left">
+                            <p className="text-white font-medium">{resumeFile.name}</p>
+                            <p className="text-zinc-400 text-sm">
+                              {(resumeFile.size / 1024 / 1024).toFixed(2)} MB
+                            </p>
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setResumeFile(null)}
+                          className="text-zinc-400 hover:text-white"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <>
+                        <Upload className="h-12 w-12 text-zinc-500 mx-auto mb-3" />
+                        <p className="text-zinc-400 mb-2">Upload your resume</p>
+                        <p className="text-zinc-500 text-sm mb-4">PDF or DOC/DOCX (Max 5MB)</p>
+                        <input
+                          type="file"
+                          id="resume-upload"
+                          accept=".pdf,.doc,.docx"
+                          onChange={handleFileChange}
+                          className="hidden"
+                        />
+                        <label htmlFor="resume-upload">
+                          <Button
+                            variant="outline"
+                            className="border-zinc-700 text-zinc-400 hover:text-white"
+                            asChild
+                          >
+                            <span>
+                              <Upload className="h-4 w-4 mr-2" />
+                              Choose File
+                            </span>
+                          </Button>
+                        </label>
+                      </>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Cover Letter */}
+                <div>
+                  <Label className="text-zinc-300 mb-2 block">Cover Letter (Optional)</Label>
+                  <Textarea
+                    value={coverLetter}
+                    onChange={(e) => setCoverLetter(e.target.value)}
+                    placeholder="Write a brief cover letter explaining why you're interested in this position..."
+                    className="bg-zinc-800/50 border-zinc-700 text-white min-h-[150px]"
+                  />
+                  <p className="text-zinc-500 text-sm mt-1">
+                    {coverLetter.length}/1000 characters
+                  </p>
+                </div>
+                
+                {/* Internship Details Summary */}
+                {selectedInternship && (
+                  <div className="bg-zinc-800/30 rounded-lg p-4 space-y-2">
+                    <h4 className="text-white font-semibold">Application Summary</h4>
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div>
+                        <p className="text-zinc-400">Position</p>
+                        <p className="text-white">{selectedInternship.title}</p>
+                      </div>
+                      <div>
+                        <p className="text-zinc-400">Company</p>
+                        <p className="text-white">{selectedInternship.company}</p>
+                      </div>
+                      <div>
+                        <p className="text-zinc-400">Location</p>
+                        <p className="text-white">{selectedInternship.location}</p>
+                      </div>
+                      <div>
+                        <p className="text-zinc-400">Duration</p>
+                        <p className="text-white">{selectedInternship.duration}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Action Buttons */}
+                <div className="flex gap-3 justify-end">
+                  <Button
+                    variant="outline"
+                    onClick={() => setApplicationModalOpen(false)}
+                    disabled={applicationLoading}
+                    className="border-zinc-700 text-zinc-400 hover:text-white"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={submitApplication}
+                    disabled={!resumeFile || applicationLoading}
+                    className="bg-[#e78a53] hover:bg-[#e78a53]/90"
+                  >
+                    {applicationLoading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Submitting...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="h-4 w-4 mr-2" />
+                        Submit Application
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

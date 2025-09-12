@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/db";
 import { EventModel } from "@/lib/models";
+import { EventBookingModel } from "@/lib/event-models";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,6 +16,7 @@ export async function GET(request: Request) {
     const search = searchParams.get('search');
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
+    const includeStats = searchParams.get('includeStats') === 'true';
 
     // Build query
     let query: any = {};
@@ -36,8 +38,64 @@ export async function GET(request: Request) {
 
     const total = await EventModel.countDocuments(query);
 
+    // Add booking statistics if requested
+    let eventsWithStats = events;
+    if (includeStats) {
+      eventsWithStats = await Promise.all(
+        events.map(async (event) => {
+          const eventObj = event.toObject();
+          
+          // Get booking statistics for this event
+          const bookingStats = await EventBookingModel.aggregate([
+            { $match: { eventId: event._id } },
+            {
+              $group: {
+                _id: null,
+                totalBookings: { $sum: 1 },
+                paidBookings: {
+                  $sum: { $cond: [{ $eq: ['$paymentStatus', 'paid'] }, 1, 0] }
+                },
+                pendingBookings: {
+                  $sum: { $cond: [{ $eq: ['$paymentStatus', 'pending'] }, 1, 0] }
+                },
+                totalRevenue: {
+                  $sum: {
+                    $cond: [{ $eq: ['$paymentStatus', 'paid'] }, '$totalAmount', 0]
+                  }
+                },
+                pendingRevenue: {
+                  $sum: {
+                    $cond: [{ $eq: ['$paymentStatus', 'pending'] }, '$totalAmount', 0]
+                  }
+                }
+              }
+            }
+          ]);
+
+          const stats = bookingStats[0] || {
+            totalBookings: 0,
+            paidBookings: 0,
+            pendingBookings: 0,
+            totalRevenue: 0,
+            pendingRevenue: 0
+          };
+
+          return {
+            ...eventObj,
+            bookingStats: {
+              totalBookings: stats.totalBookings,
+              paidBookings: stats.paidBookings,
+              pendingBookings: stats.pendingBookings,
+              totalRevenue: stats.totalRevenue,
+              pendingRevenue: stats.pendingRevenue
+            }
+          };
+        })
+      );
+    }
+
     return NextResponse.json({
-      events,
+      events: eventsWithStats,
       pagination: {
         page,
         limit,

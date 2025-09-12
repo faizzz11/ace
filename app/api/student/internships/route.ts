@@ -16,8 +16,8 @@ export async function GET(request: Request) {
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '100');
 
-    // Build query - show all internships from database
-    let query: any = {};
+    // Build query - show only active internships
+    let query: any = { status: 'active' };
     
     if (category && category !== 'all') {
       query.category = category.toLowerCase();
@@ -47,10 +47,10 @@ export async function GET(request: Request) {
     const total = await InternshipModel.countDocuments(query);
 
     // Calculate statistics
-    const totalActive = await InternshipModel.countDocuments({});
-    const totalRemote = await InternshipModel.countDocuments({ locationType: 'remote' });
+    const totalActive = await InternshipModel.countDocuments({ status: 'active' });
+    const totalRemote = await InternshipModel.countDocuments({ status: 'active', locationType: 'remote' });
     const totalApplications = await InternshipModel.aggregate([
-      { $match: {} },
+      { $match: { status: 'active' } },
       { $group: { _id: null, total: { $sum: '$applicationCount' } } }
     ]);
     
@@ -59,6 +59,7 @@ export async function GET(request: Request) {
     threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
     const today = new Date();
     const closingSoon = await InternshipModel.countDocuments({
+      status: 'active',
       applicationDeadline: { $gte: today, $lte: threeDaysFromNow }
     });
 

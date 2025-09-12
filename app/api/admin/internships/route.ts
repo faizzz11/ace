@@ -115,7 +115,7 @@ export async function POST(request: Request) {
       contactPhone: contactPhone || '',
       companyWebsite: companyWebsite || '',
       applicationUrl: applicationUrl || '',
-      status: status || 'draft',
+      status: status || 'active',
       category: category || null,
       experienceLevel: experienceLevel || 'fresher',
       isRemote: isRemote || false,

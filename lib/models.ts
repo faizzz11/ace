@@ -313,6 +313,36 @@ const InternshipSchema = new Schema(
   { timestamps: true }
 );
 
+const InternshipApplicationSchema = new Schema(
+  {
+    internshipId: { type: Schema.Types.ObjectId, ref: 'Internship', required: true },
+    studentId: { type: Schema.Types.ObjectId, ref: 'Student', required: true },
+    studentName: { type: String, required: true },
+    studentEmail: { type: String, required: true },
+    studentPhone: { type: String, required: true },
+    studentClass: { type: String, required: true }, // year + branch + section
+    studentRollNumber: { type: String, required: true },
+    resumeFileName: { type: String, required: true },
+    resumeFilePath: { type: String, required: true }, // Base64 or file path
+    resumeFileType: { type: String, required: true }, // pdf, doc, docx
+    coverLetter: { type: String }, // Optional cover letter
+    applicationStatus: { 
+      type: String, 
+      enum: ['pending', 'under_review', 'shortlisted', 'rejected', 'selected'], 
+      default: 'pending' 
+    },
+    appliedAt: { type: Date, default: Date.now },
+    reviewedAt: { type: Date },
+    reviewedBy: { type: String },
+    reviewNotes: { type: String },
+    interviewDate: { type: Date },
+    interviewTime: { type: String },
+    interviewVenue: { type: String },
+    selectionNotes: { type: String },
+  },
+  { timestamps: true }
+);
+
 // Indexes for better performance
 EventSchema.index({ startDate: 1, status: 1 });
 EventSchema.index({ eventType: 1 });
@@ -324,6 +354,9 @@ BookingSchema.index({ resourceId: 1, startDate: 1, endDate: 1 });
 BookingSchema.index({ userId: 1, status: 1 });
 InternshipSchema.index({ applicationDeadline: 1, status: 1 });
 InternshipSchema.index({ company: 1, category: 1 });
+InternshipApplicationSchema.index({ internshipId: 1, studentId: 1 }, { unique: true }); // Prevent duplicate applications
+InternshipApplicationSchema.index({ studentId: 1, applicationStatus: 1 });
+InternshipApplicationSchema.index({ internshipId: 1, applicationStatus: 1 });
 
 export const StudentModel = models.Student || model("Student", StudentSchema);
 export const TeacherModel = models.Teacher || model("Teacher", TeacherSchema);
@@ -337,3 +370,4 @@ export const EventModel = models.Event || model("Event", EventSchema);
 export const ResourceModel = models.Resource || model("Resource", ResourceSchema);
 export const BookingModel = models.Booking || model("Booking", BookingSchema);
 export const InternshipModel = models.Internship || model("Internship", InternshipSchema);
+export const InternshipApplicationModel = models.InternshipApplication || model("InternshipApplication", InternshipApplicationSchema);

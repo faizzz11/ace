@@ -26,7 +26,14 @@ import {
   Building,
   Users,
   X,
-  Calendar
+  Calendar,
+  FileText,
+  Download,
+  CheckCircle,
+  XCircle,
+  UserCheck,
+  Mail,
+  Phone
 } from "lucide-react"
 import { redirectIfNotAuthenticatedAdmin } from '@/lib/auth-middleware'
 
@@ -57,6 +64,26 @@ interface Internship {
   createdAt: string
 }
 
+interface Application {
+  _id: string
+  internshipId: any
+  studentId: string
+  studentName: string
+  studentEmail: string
+  studentPhone: string
+  studentClass: string
+  studentRollNumber: string
+  resumeFileName: string
+  resumeFilePath: string
+  resumeFileType: string
+  coverLetter?: string
+  applicationStatus: string
+  appliedAt: string
+  reviewedAt?: string
+  reviewedBy?: string
+  reviewNotes?: string
+}
+
 export default function AdminInternshipsPage() {
   const [isPageLoading, setIsPageLoading] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
@@ -72,6 +99,13 @@ export default function AdminInternshipsPage() {
   const [editingInternship, setEditingInternship] = useState<Internship | null>(null)
   const [detailModalOpen, setDetailModalOpen] = useState(false)
   const [selectedInternship, setSelectedInternship] = useState<Internship | null>(null)
+  
+  // Applications states
+  const [applicationsModalOpen, setApplicationsModalOpen] = useState(false)
+  const [applications, setApplications] = useState<Application[]>([])
+  const [applicationsLoading, setApplicationsLoading] = useState(false)
+  const [selectedApplicationInternship, setSelectedApplicationInternship] = useState<Internship | null>(null)
+  const [applicationStatusFilter, setApplicationStatusFilter] = useState('all')
   
   // Form data
   const [formData, setFormData] = useState({
@@ -92,7 +126,7 @@ export default function AdminInternshipsPage() {
     contactPhone: '',
     companyWebsite: '',
     applicationUrl: '',
-    status: 'draft',
+    status: 'active',
     category: '',
     experienceLevel: 'fresher',
     isRemote: false
@@ -198,7 +232,8 @@ export default function AdminInternshipsPage() {
         contactPhone: '',
         companyWebsite: '',
         applicationUrl: '',
-        status: 'draft',
+        status: 'active',
+
         category: '',
         experienceLevel: 'fresher',
         isRemote: false
@@ -269,6 +304,64 @@ export default function AdminInternshipsPage() {
     } finally {
       setIsLoading(false)
     }
+  }
+  
+  const viewApplications = async (internship: Internship) => {
+    setSelectedApplicationInternship(internship)
+    setApplicationsModalOpen(true)
+    setApplicationsLoading(true)
+    
+    try {
+      const response = await fetch(`/api/admin/internships/applications?internshipId=${internship._id}`)
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch applications')
+      }
+      
+      setApplications(data.applications || [])
+    } catch (error: any) {
+      setError(error.message || 'Failed to fetch applications')
+    } finally {
+      setApplicationsLoading(false)
+    }
+  }
+  
+  const updateApplicationStatus = async (applicationId: string, status: string) => {
+    try {
+      const response = await fetch(`/api/admin/internships/applications?id=${applicationId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          applicationStatus: status,
+          reviewedBy: 'Admin'
+        })
+      })
+      
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update application')
+      }
+      
+      // Refresh applications
+      if (selectedApplicationInternship) {
+        await viewApplications(selectedApplicationInternship)
+      }
+      
+      alert(`Application ${status} successfully`)
+    } catch (error: any) {
+      setError(error.message || 'Failed to update application')
+    }
+  }
+  
+  const downloadResume = (application: Application) => {
+    const link = document.createElement('a')
+    link.href = application.resumeFilePath
+    link.download = application.resumeFileName
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
   }
 
   const getStatusBadge = (status: string) => {
@@ -468,6 +561,15 @@ export default function AdminInternshipsPage() {
                       </div>
                       
                       <div className="flex items-center gap-2 ml-4">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => viewApplications(internship)}
+                          className="border-blue-600 text-blue-400 hover:bg-blue-600/20"
+                        >
+                          <Users className="h-4 w-4 mr-1" />
+                          {internship.applicationCount}
+                        </Button>
                         <Button
                           size="sm"
                           variant="outline"
@@ -912,6 +1014,230 @@ export default function AdminInternshipsPage() {
                 )}
               </div>
             )}
+          </DialogContent>
+        </Dialog>
+        
+        {/* Applications Modal */}
+        <Dialog open={applicationsModalOpen} onOpenChange={setApplicationsModalOpen}>
+          <DialogContent className="bg-zinc-900 border-zinc-800 text-white max-w-6xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5 text-[#e78a53]" />
+                Applications for {selectedApplicationInternship?.title}
+              </DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              {/* Stats */}
+              <div className="grid grid-cols-5 gap-4">
+                <Card className="bg-zinc-800/50 border-zinc-700">
+                  <CardContent className="p-4">
+                    <div className="text-2xl font-bold text-white">{applications.length}</div>
+                    <div className="text-sm text-zinc-400">Total Applications</div>
+                  </CardContent>
+                </Card>
+                <Card className="bg-zinc-800/50 border-zinc-700">
+                  <CardContent className="p-4">
+                    <div className="text-2xl font-bold text-yellow-400">
+                      {applications.filter(a => a.applicationStatus === 'pending').length}
+                    </div>
+                    <div className="text-sm text-zinc-400">Pending</div>
+                  </CardContent>
+                </Card>
+                <Card className="bg-zinc-800/50 border-zinc-700">
+                  <CardContent className="p-4">
+                    <div className="text-2xl font-bold text-blue-400">
+                      {applications.filter(a => a.applicationStatus === 'under_review').length}
+                    </div>
+                    <div className="text-sm text-zinc-400">Under Review</div>
+                  </CardContent>
+                </Card>
+                <Card className="bg-zinc-800/50 border-zinc-700">
+                  <CardContent className="p-4">
+                    <div className="text-2xl font-bold text-green-400">
+                      {applications.filter(a => a.applicationStatus === 'shortlisted').length}
+                    </div>
+                    <div className="text-sm text-zinc-400">Shortlisted</div>
+                  </CardContent>
+                </Card>
+                <Card className="bg-zinc-800/50 border-zinc-700">
+                  <CardContent className="p-4">
+                    <div className="text-2xl font-bold text-purple-400">
+                      {applications.filter(a => a.applicationStatus === 'selected').length}
+                    </div>
+                    <div className="text-sm text-zinc-400">Selected</div>
+                  </CardContent>
+                </Card>
+              </div>
+              
+              {/* Filter */}
+              <div className="flex gap-2">
+                <Select value={applicationStatusFilter} onValueChange={setApplicationStatusFilter}>
+                  <SelectTrigger className="w-48 bg-zinc-800/50 border-zinc-700 text-white">
+                    <SelectValue placeholder="Filter by status" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-zinc-800 border-zinc-700">
+                    <SelectItem value="all">All Applications</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="under_review">Under Review</SelectItem>
+                    <SelectItem value="shortlisted">Shortlisted</SelectItem>
+                    <SelectItem value="rejected">Rejected</SelectItem>
+                    <SelectItem value="selected">Selected</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {/* Applications List */}
+              {applicationsLoading ? (
+                <div className="text-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-[#e78a53] mx-auto" />
+                  <p className="text-zinc-400 mt-2">Loading applications...</p>
+                </div>
+              ) : applications.length === 0 ? (
+                <div className="text-center py-8">
+                  <Users className="h-12 w-12 text-zinc-600 mx-auto mb-4" />
+                  <p className="text-zinc-400">No applications yet</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {applications
+                    .filter(app => applicationStatusFilter === 'all' || app.applicationStatus === applicationStatusFilter)
+                    .map((application) => (
+                    <Card key={application._id} className="bg-zinc-800/50 border-zinc-700">
+                      <CardContent className="p-6">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-3">
+                              <h3 className="text-lg font-semibold text-white">{application.studentName}</h3>
+                              <Badge className={`${
+                                application.applicationStatus === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
+                                application.applicationStatus === 'under_review' ? 'bg-blue-500/20 text-blue-400' :
+                                application.applicationStatus === 'shortlisted' ? 'bg-green-500/20 text-green-400' :
+                                application.applicationStatus === 'rejected' ? 'bg-red-500/20 text-red-400' :
+                                application.applicationStatus === 'selected' ? 'bg-purple-500/20 text-purple-400' :
+                                'bg-zinc-500/20 text-zinc-400'
+                              }`}>
+                                {application.applicationStatus.replace('_', ' ').toUpperCase()}
+                              </Badge>
+                            </div>
+                            
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                              <div>
+                                <p className="text-zinc-400">Roll Number</p>
+                                <p className="text-white">{application.studentRollNumber}</p>
+                              </div>
+                              <div>
+                                <p className="text-zinc-400">Class</p>
+                                <p className="text-white">{application.studentClass}</p>
+                              </div>
+                              <div>
+                                <p className="text-zinc-400">Email</p>
+                                <p className="text-white flex items-center gap-1">
+                                  <Mail className="h-3 w-3" />
+                                  {application.studentEmail}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-zinc-400">Phone</p>
+                                <p className="text-white flex items-center gap-1">
+                                  <Phone className="h-3 w-3" />
+                                  {application.studentPhone}
+                                </p>
+                              </div>
+                            </div>
+                            
+                            {application.coverLetter && (
+                              <div className="mt-3">
+                                <p className="text-zinc-400 text-sm mb-1">Cover Letter</p>
+                                <p className="text-zinc-300 text-sm bg-zinc-800/30 p-3 rounded">
+                                  {application.coverLetter}
+                                </p>
+                              </div>
+                            )}
+                            
+                            <div className="mt-3 flex items-center gap-2 text-xs text-zinc-500">
+                              <Calendar className="h-3 w-3" />
+                              Applied on {new Date(application.appliedAt).toLocaleDateString()}
+                            </div>
+                          </div>
+                          
+                          <div className="flex flex-col gap-2 ml-4">
+                            <Button
+                              size="sm"
+                              onClick={() => downloadResume(application)}
+                              className="bg-[#e78a53] hover:bg-[#e78a53]/90"
+                            >
+                              <Download className="h-4 w-4 mr-1" />
+                              Resume
+                            </Button>
+                            
+                            {application.applicationStatus === 'pending' && (
+                              <>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => updateApplicationStatus(application._id, 'under_review')}
+                                  className="border-blue-600 text-blue-400 hover:bg-blue-600/20"
+                                >
+                                  <Eye className="h-4 w-4 mr-1" />
+                                  Review
+                                </Button>
+                              </>
+                            )}
+                            
+                            {application.applicationStatus === 'under_review' && (
+                              <>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => updateApplicationStatus(application._id, 'shortlisted')}
+                                  className="border-green-600 text-green-400 hover:bg-green-600/20"
+                                >
+                                  <CheckCircle className="h-4 w-4 mr-1" />
+                                  Shortlist
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => updateApplicationStatus(application._id, 'rejected')}
+                                  className="border-red-600 text-red-400 hover:bg-red-600/20"
+                                >
+                                  <XCircle className="h-4 w-4 mr-1" />
+                                  Reject
+                                </Button>
+                              </>
+                            )}
+                            
+                            {application.applicationStatus === 'shortlisted' && (
+                              <>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => updateApplicationStatus(application._id, 'selected')}
+                                  className="border-purple-600 text-purple-400 hover:bg-purple-600/20"
+                                >
+                                  <UserCheck className="h-4 w-4 mr-1" />
+                                  Select
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => updateApplicationStatus(application._id, 'rejected')}
+                                  className="border-red-600 text-red-400 hover:bg-red-600/20"
+                                >
+                                  <XCircle className="h-4 w-4 mr-1" />
+                                  Reject
+                                </Button>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
           </DialogContent>
         </Dialog>
       </main>

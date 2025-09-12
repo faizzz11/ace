@@ -30,6 +30,7 @@ import {
   Megaphone
 } from "lucide-react"
 import { useEffect, useState } from "react"
+import { EventBookingDialog } from "@/components/event-booking-dialog"
 
 interface Event {
   _id: string
@@ -61,6 +62,8 @@ export default function StudentEventsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
+  const [showBookingDialog, setShowBookingDialog] = useState(false)
 
   useEffect(() => {
     fetchEvents()
@@ -116,13 +119,23 @@ export default function StudentEventsPage() {
   }
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('en-US', { 
+    return new Date(dateString).toLocaleDateString('en-US', { 
       weekday: 'long', 
       year: 'numeric', 
       month: 'long', 
       day: 'numeric' 
     })
+  }
+
+  const handleEventRegistration = (event: Event) => {
+    setSelectedEvent(event)
+    setShowBookingDialog(true)
+  }
+
+  const handleBookingSuccess = (booking: any) => {
+    console.log('Booking successful:', booking)
+    // Refresh events to update any counts or availability
+    fetchEvents()
   }
 
   return (
@@ -296,7 +309,10 @@ export default function StudentEventsPage() {
                       </div>
                     )}
 
-                    <Button className="w-full bg-[#e78a53] hover:bg-[#e78a53]/90 text-white">
+                    <Button 
+                      className="w-full bg-[#e78a53] hover:bg-[#e78a53]/90 text-white"
+                      onClick={() => handleEventRegistration(event)}
+                    >
                       {event.fee > 0 ? 'Register & Pay' : 'Register Now'}
                       <ChevronRight className="h-4 w-4 ml-2" />
                     </Button>
@@ -314,6 +330,14 @@ export default function StudentEventsPage() {
           </div>
         </div>
       </main>
+      
+      {/* Event Booking Dialog */}
+      <EventBookingDialog
+        isOpen={showBookingDialog}
+        onClose={() => setShowBookingDialog(false)}
+        event={selectedEvent}
+        onBookingSuccess={handleBookingSuccess}
+      />
     </div>
   )
 }
