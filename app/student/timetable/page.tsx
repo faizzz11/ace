@@ -4,6 +4,7 @@ import React from "react"
 import Link from "next/link"
 import { useMemo } from "react"
 import { Card } from "@/components/ui/card"
+import { StudentSidebar } from "@/components/student-sidebar"
 
 type TimeSlot = string
 type Day = "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday"
@@ -46,24 +47,21 @@ export default function StudentTimetablePage() {
     }, [])
 
     return (
-        <div className="min-h-screen bg-black">
-            <header className="bg-zinc-900/50 backdrop-blur-sm border-b border-zinc-800">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-                    <div className="flex items-baseline gap-3">
-                        <Link href="/student/dashboard" className="text-[#e78a53] font-semibold">Dashboard</Link>
-                        <span className="text-zinc-500">/</span>
-                        <span className="text-white font-bold">Timetable</span>
+        <div className="min-h-screen bg-black flex">
+            <StudentSidebar />
+            
+            <main className="flex-1 overflow-auto">
+                <header className="bg-zinc-900/50 backdrop-blur-sm border-b border-zinc-800">
+                    <div className="px-8 py-6">
+                        <div className="flex items-center gap-3">
+                            <h1 className="text-3xl font-bold text-white">Weekly Timetable</h1>
+                        </div>
+                        <p className="text-zinc-400 mt-2">Days vertically, time slots horizontally</p>
                     </div>
-                </div>
-            </header>
+                </header>
 
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="mb-6">
-                    <h1 className="text-3xl font-bold text-white">Weekly Timetable</h1>
-                    <p className="text-zinc-400">Days vertically, time slots horizontally</p>
-                </div>
-
-                <Card className="bg-zinc-900/50 border-zinc-800 overflow-hidden">
+                <div className="p-8">
+                    <Card className="bg-zinc-900/50 border-zinc-800 overflow-hidden">
                     <div className="w-full overflow-x-auto">
                         <div className="min-w-[900px]">
                             <div className="grid" style={{ gridTemplateColumns: `180px repeat(${config.timeSlots.length}, minmax(160px, 1fr))` }}>
@@ -98,7 +96,8 @@ export default function StudentTimetablePage() {
                             </div>
                         </div>
                     </div>
-                </Card>
+                    </Card>
+                </div>
             </main>
         </div>
     )
