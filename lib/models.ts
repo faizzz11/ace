@@ -35,10 +35,10 @@ const StockItemSchema = new Schema(
     supplier: { type: String },
     lastRestocked: { type: Date },
     expiryDate: { type: Date },
-    status: {
-      type: String,
-      enum: ['good', 'low', 'critical', 'out_of_stock'],
-      default: 'good'
+    status: { 
+      type: String, 
+      enum: ['good', 'low', 'critical', 'out_of_stock'], 
+      default: 'good' 
     },
     description: { type: String },
     location: { type: String }, // Storage location
@@ -217,7 +217,7 @@ const ResourceSchema = new Schema(
     name: { type: String, required: true },
     description: { type: String, required: true },
     category: { type: String, enum: ['book', 'equipment', 'facility'], required: true },
-
+    
     // Common fields
     location: { type: String, required: true },
     isAvailable: { type: Boolean, default: true },
@@ -225,7 +225,7 @@ const ResourceSchema = new Schema(
     status: { type: String, enum: ['active', 'maintenance', 'retired'], default: 'active' },
     tags: [{ type: String }],
     image: { type: String },
-
+    
     // For Books
     isbn: { type: String },
     author: { type: String },
@@ -233,13 +233,13 @@ const ResourceSchema = new Schema(
     edition: { type: String },
     totalCopies: { type: Number },
     availableCopies: { type: Number },
-
+    
     // For Equipment
     serialNumber: { type: String },
     model: { type: String },
     brand: { type: String },
     specifications: { type: String },
-
+    
     // For Facilities (Seminar Halls)
     capacity: { type: Number },
     amenities: [{ type: String }],
@@ -247,7 +247,7 @@ const ResourceSchema = new Schema(
       start: { type: String },
       end: { type: String }
     },
-
+    
     // Booking/Borrowing info
     maxBorrowDuration: { type: Number }, // in days for books/equipment, hours for facilities
     requiresApproval: { type: Boolean, default: false },
@@ -333,3 +333,7 @@ export const AttendanceModel = models.Attendance || model("Attendance", Attendan
 export const SectionModel = models.Section || model("Section", SectionSchema);
 export const MenuItemModel = models.MenuItem || model("MenuItem", MenuItemSchema);
 export const StockItemModel = models.StockItem || model("StockItem", StockItemSchema);
+export const EventModel = models.Event || model("Event", EventSchema);
+export const ResourceModel = models.Resource || model("Resource", ResourceSchema);
+export const BookingModel = models.Booking || model("Booking", BookingSchema);
+export const InternshipModel = models.Internship || model("Internship", InternshipSchema);

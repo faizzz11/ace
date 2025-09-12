@@ -23,120 +23,96 @@ import {
   Briefcase,
   Users,
   Calendar,
-  MapPin
+  MapPin,
+  GraduationCap,
+  Gamepad2,
+  BookOpen,
+  Megaphone
 } from "lucide-react"
+import { useEffect, useState } from "react"
+
+interface Event {
+  _id: string
+  title: string
+  description: string
+  eventType: 'academic' | 'cultural' | 'sports' | 'workshop' | 'seminar' | 'other'
+  startDate: string
+  endDate: string
+  startTime: string
+  endTime: string
+  venue: string
+  organizer: string
+  contactEmail?: string
+  contactPhone?: string
+  maxParticipants?: number
+  registrationDeadline?: string
+  fee: number
+  status: 'draft' | 'published' | 'ongoing' | 'completed' | 'cancelled'
+  imageUrl?: string
+  tags: string[]
+  requirements: string[]
+  isPublic: boolean
+  createdAt: string
+  updatedAt: string
+}
 
 export default function StudentEventsPage() {
-  // Dummy events data
-  const events = [
-    {
-      id: 1,
-      title: "Tech Fest 2024",
-      description: "Annual technology festival featuring coding competitions, workshops, and tech talks by industry experts.",
-      date: "2024-03-15",
-      time: "09:00 AM",
-      location: "Main Auditorium",
-      category: "Technology",
-      organizer: "Computer Science Department",
-      image: "/placeholder-tech.jpg",
-      attendees: 250,
-      maxAttendees: 300,
-      status: "upcoming",
-      tags: ["coding", "workshops", "tech-talks"],
-      icon: <Code className="h-5 w-5" />
-    },
-    {
-      id: 2,
-      title: "Cultural Night",
-      description: "Celebrate diversity with music, dance, and cultural performances from students across different backgrounds.",
-      date: "2024-03-20",
-      time: "06:00 PM",
-      location: "Open Ground",
-      category: "Cultural",
-      organizer: "Cultural Committee",
-      image: "/placeholder-cultural.jpg",
-      attendees: 180,
-      maxAttendees: 400,
-      status: "upcoming",
-      tags: ["music", "dance", "cultural"],
-      icon: <Music className="h-5 w-5" />
-    },
-    {
-      id: 3,
-      title: "AI & Machine Learning Workshop",
-      description: "Hands-on workshop on artificial intelligence and machine learning fundamentals with practical projects.",
-      date: "2024-03-25",
-      time: "10:00 AM",
-      location: "Computer Lab 1",
-      category: "Workshop",
-      organizer: "AI Club",
-      image: "/placeholder-ai.jpg",
-      attendees: 45,
-      maxAttendees: 50,
-      status: "upcoming",
-      tags: ["AI", "ML", "workshop"],
-      icon: <Lightbulb className="h-5 w-5" />
-    },
-    {
-      id: 4,
-      title: "Inter-College Sports Meet",
-      description: "Annual sports competition featuring various games including cricket, football, basketball, and athletics.",
-      date: "2024-03-30",
-      time: "08:00 AM",
-      location: "Sports Complex",
-      category: "Sports",
-      organizer: "Sports Committee",
-      image: "/placeholder-sports.jpg",
-      attendees: 320,
-      maxAttendees: 500,
-      status: "upcoming",
-      tags: ["sports", "competition", "athletics"],
-      icon: <Trophy className="h-5 w-5" />
-    },
-    {
-      id: 5,
-      title: "Art Exhibition",
-      description: "Showcase of creative artworks, paintings, sculptures, and digital art by talented students.",
-      date: "2024-04-05",
-      time: "11:00 AM",
-      location: "Art Gallery",
-      category: "Arts",
-      organizer: "Fine Arts Department",
-      image: "/placeholder-art.jpg",
-      attendees: 85,
-      maxAttendees: 150,
-      status: "upcoming",
-      tags: ["art", "exhibition", "creativity"],
-      icon: <Palette className="h-5 w-5" />
-    },
-    {
-      id: 6,
-      title: "Career Fair 2024",
-      description: "Meet with top companies and recruiters. Great opportunity for networking and job placements.",
-      date: "2024-04-10",
-      time: "09:00 AM",
-      location: "Main Hall",
-      category: "Career",
-      organizer: "Placement Cell",
-      image: "/placeholder-career.jpg",
-      attendees: 200,
-      maxAttendees: 350,
-      status: "upcoming",
-      tags: ["career", "jobs", "networking"],
-      icon: <Briefcase className="h-5 w-5" />
-    }
-  ]
+  const [events, setEvents] = useState<Event[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
 
-  const getCategoryColor = (category: string) => {
-    const colors = {
-      Technology: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-      Cultural: "bg-purple-500/10 text-purple-400 border-purple-500/20",
-      Workshop: "bg-green-500/10 text-green-400 border-green-500/20",
-      Sports: "bg-red-500/10 text-red-400 border-red-500/20",
-      Arts: "bg-pink-500/10 text-pink-400 border-pink-500/20",
-      Career: "bg-orange-500/10 text-orange-400 border-orange-500/20"
+  useEffect(() => {
+    fetchEvents()
+    
+    // Set up real-time polling to fetch new data every 30 seconds
+    const interval = setInterval(() => {
+      fetchEvents()
+    }, 30000) // 30 seconds
+    
+    return () => clearInterval(interval)
+  }, [])
+
+  const fetchEvents = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch('/api/student/events?limit=50')
+      if (!response.ok) {
+        throw new Error('Failed to fetch events')
+      }
+      const data = await response.json()
+      setEvents(data.events || [])
+      setLastUpdated(new Date())
+    } catch (error) {
+      console.error('Error fetching events:', error)
+      setError('Failed to load events. Please try again later.')
+    } finally {
+      setLoading(false)
     }
-    return colors[category as keyof typeof colors] || "bg-zinc-500/10 text-zinc-400 border-zinc-500/20"
+  }
+
+  const getCategoryColor = (eventType: string) => {
+    const colors = {
+      academic: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+      cultural: "bg-purple-500/10 text-purple-400 border-purple-500/20",
+      workshop: "bg-green-500/10 text-green-400 border-green-500/20",
+      sports: "bg-red-500/10 text-red-400 border-red-500/20",
+      seminar: "bg-orange-500/10 text-orange-400 border-orange-500/20",
+      other: "bg-pink-500/10 text-pink-400 border-pink-500/20"
+    }
+    return colors[eventType as keyof typeof colors] || "bg-zinc-500/10 text-zinc-400 border-zinc-500/20"
+  }
+
+  const getCategoryIcon = (eventType: string) => {
+    const icons = {
+      academic: <GraduationCap className="h-5 w-5" />,
+      cultural: <Music className="h-5 w-5" />,
+      workshop: <Lightbulb className="h-5 w-5" />,
+      sports: <Trophy className="h-5 w-5" />,
+      seminar: <Megaphone className="h-5 w-5" />,
+      other: <BookOpen className="h-5 w-5" />
+    }
+    return icons[eventType as keyof typeof icons] || <BookOpen className="h-5 w-5" />
   }
 
   const formatDate = (dateString: string) => {
@@ -162,10 +138,19 @@ export default function StudentEventsPage() {
               <div>
                 <h1 className="text-3xl font-bold text-white mb-2">Campus Events</h1>
                 <p className="text-zinc-400">Discover and join exciting events happening on campus</p>
+                {lastUpdated && (
+                  <p className="text-zinc-500 text-xs mt-1">Last updated: {lastUpdated.toLocaleTimeString()}</p>
+                )}
               </div>
-              <Button variant="ghost" size="icon">
-                <Bell className="h-5 w-5 text-zinc-400" />
-              </Button>
+              <div className="flex gap-2">
+                <Button onClick={fetchEvents} variant="outline" className="border-zinc-700 text-zinc-400 hover:text-white" disabled={loading}>
+                  <Clock className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                  {loading ? 'Refreshing...' : 'Refresh'}
+                </Button>
+                <Button variant="ghost" size="icon">
+                  <Bell className="h-5 w-5 text-zinc-400" />
+                </Button>
+              </div>
             </div>
           </div>
         </header>
@@ -218,73 +203,108 @@ export default function StudentEventsPage() {
           </div>
 
           {/* Events Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-            {events.map((event) => (
-              <Card key={event.id} className="bg-zinc-900/50 border-zinc-800 hover:border-[#e78a53]/50 transition-colors group">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-[#e78a53]/10 rounded-lg group-hover:bg-[#e78a53]/20 transition-colors">
-                        {event.icon}
+          {loading ? (
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#e78a53] mx-auto"></div>
+              <p className="text-zinc-400 mt-4">Loading events...</p>
+            </div>
+          ) : error ? (
+            <div className="text-center py-12">
+              <p className="text-red-400 mb-4">{error}</p>
+              <Button onClick={fetchEvents} variant="outline" className="border-zinc-700 text-zinc-400 hover:text-white">
+                Try Again
+              </Button>
+            </div>
+          ) : events.length === 0 ? (
+            <div className="text-center py-12">
+              <CalendarDays className="h-16 w-16 text-zinc-600 mx-auto mb-4" />
+              <p className="text-zinc-400 text-lg">No events available at the moment</p>
+              <p className="text-zinc-500 text-sm mt-2">Check back later for upcoming events</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+              {events.map((event) => (
+                <Card key={event._id} className="bg-zinc-900/50 border-zinc-800 hover:border-[#e78a53]/50 transition-colors group">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-[#e78a53]/10 rounded-lg group-hover:bg-[#e78a53]/20 transition-colors">
+                          {getCategoryIcon(event.eventType)}
+                        </div>
+                        <Badge className={`${getCategoryColor(event.eventType)} border`}>
+                          {event.eventType.charAt(0).toUpperCase() + event.eventType.slice(1)}
+                        </Badge>
                       </div>
-                      <Badge className={`${getCategoryColor(event.category)} border`}>
-                        {event.category}
-                      </Badge>
                     </div>
-                  </div>
-                  <CardTitle className="text-white text-lg leading-tight">{event.title}</CardTitle>
-                </CardHeader>
-                
-                <CardContent className="space-y-4">
-                  <p className="text-zinc-400 text-sm leading-relaxed">{event.description}</p>
+                    <CardTitle className="text-white text-lg leading-tight">{event.title}</CardTitle>
+                  </CardHeader>
                   
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-zinc-400 text-sm">
-                      <Calendar className="h-4 w-4 text-[#e78a53]" />
-                      <span>{formatDate(event.date)}</span>
-                    </div>
+                  <CardContent className="space-y-4">
+                    <p className="text-zinc-400 text-sm leading-relaxed line-clamp-3">{event.description}</p>
                     
-                    <div className="flex items-center gap-2 text-zinc-400 text-sm">
-                      <Clock className="h-4 w-4 text-[#e78a53]" />
-                      <span>{event.time}</span>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-zinc-400 text-sm">
+                        <Calendar className="h-4 w-4 text-[#e78a53]" />
+                        <span>{formatDate(event.startDate)}</span>
+                      </div>
+                      
+                      <div className="flex items-center gap-2 text-zinc-400 text-sm">
+                        <Clock className="h-4 w-4 text-[#e78a53]" />
+                        <span>{event.startTime} - {event.endTime}</span>
+                      </div>
+                      
+                      <div className="flex items-center gap-2 text-zinc-400 text-sm">
+                        <MapPin className="h-4 w-4 text-[#e78a53]" />
+                        <span>{event.venue}</span>
+                      </div>
+                      
+                      <div className="flex items-center gap-2 text-zinc-400 text-sm">
+                        <User className="h-4 w-4 text-[#e78a53]" />
+                        <span>{event.organizer}</span>
+                      </div>
                     </div>
-                    
-                    <div className="flex items-center gap-2 text-zinc-400 text-sm">
-                      <MapPin className="h-4 w-4 text-[#e78a53]" />
-                      <span>{event.location}</span>
-                    </div>
-                    
-                    <div className="flex items-center gap-2 text-zinc-400 text-sm">
-                      <User className="h-4 w-4 text-[#e78a53]" />
-                      <span>{event.organizer}</span>
-                    </div>
-                  </div>
 
-                  <div className="flex items-center justify-between pt-2">
-                    <div className="flex items-center gap-2">
-                      <Eye className="h-4 w-4 text-zinc-400" />
-                      <span className="text-zinc-400 text-sm">
-                        {event.attendees}/{event.maxAttendees} registered
-                      </span>
-                    </div>
-                  </div>
+                    {event.maxParticipants && (
+                      <div className="flex items-center justify-between pt-2">
+                        <div className="flex items-center gap-2">
+                          <Users className="h-4 w-4 text-zinc-400" />
+                          <span className="text-zinc-400 text-sm">
+                            Max participants: {event.maxParticipants}
+                          </span>
+                        </div>
+                      </div>
+                    )}
 
-                  <div className="flex flex-wrap gap-1">
-                    {event.tags.map((tag, index) => (
-                      <Badge key={index} variant="secondary" className="bg-zinc-800/50 text-zinc-400 text-xs">
-                        #{tag}
-                      </Badge>
-                    ))}
-                  </div>
+                    {event.fee > 0 && (
+                      <div className="flex items-center gap-2 text-[#e78a53] text-sm font-semibold">
+                        <span>₹{event.fee}</span>
+                      </div>
+                    )}
 
-                  <Button className="w-full bg-[#e78a53] hover:bg-[#e78a53]/90 text-white">
-                    Register Now
-                    <ChevronRight className="h-4 w-4 ml-2" />
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                    {event.tags && event.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {event.tags.slice(0, 3).map((tag, index) => (
+                          <Badge key={index} variant="secondary" className="bg-zinc-800/50 text-zinc-400 text-xs">
+                            #{tag}
+                          </Badge>
+                        ))}
+                        {event.tags.length > 3 && (
+                          <Badge variant="secondary" className="bg-zinc-800/50 text-zinc-400 text-xs">
+                            +{event.tags.length - 3} more
+                          </Badge>
+                        )}
+                      </div>
+                    )}
+
+                    <Button className="w-full bg-[#e78a53] hover:bg-[#e78a53]/90 text-white">
+                      {event.fee > 0 ? 'Register & Pay' : 'Register Now'}
+                      <ChevronRight className="h-4 w-4 ml-2" />
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
 
           {/* Load More */}
           <div className="text-center mt-8">

@@ -15,102 +15,139 @@ import {
   Filter,
   Clock,
   Star,
-  Eye
+  Eye,
+  Wrench,
+  Building,
+  User,
+  MapPin,
+  Calendar
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
+import { useEffect, useState } from "react"
+
+interface Resource {
+  _id: string
+  name: string
+  description: string
+  category: 'book' | 'equipment' | 'facility'
+  location: string
+  isAvailable: boolean
+  condition: 'excellent' | 'good' | 'fair' | 'damaged'
+  status: 'active' | 'maintenance' | 'retired'
+  tags: string[]
+  image?: string
+  
+  // For Books
+  isbn?: string
+  author?: string
+  publisher?: string
+  edition?: string
+  totalCopies?: number
+  availableCopies?: number
+  
+  // For Equipment
+  serialNumber?: string
+  model?: string
+  brand?: string
+  specifications?: string
+  
+  // For Facilities
+  capacity?: number
+  amenities?: string[]
+  operatingHours?: {
+    start: string
+    end: string
+  }
+  
+  // Booking info
+  maxBorrowDuration?: number
+  requiresApproval: boolean
+  currentBorrower?: string
+  dueDate?: string
+  totalBorrows: number
+  createdAt: string
+  updatedAt: string
+}
 
 export default function StudentResourcesPage() {
-  const resources = [
-    {
-      id: 1,
-      title: "Data Structures and Algorithms",
-      description: "Complete guide to DSA with examples and practice problems",
-      type: "PDF",
-      subject: "Computer Science",
-      downloads: 245,
-      rating: 4.8,
-      size: "15.2 MB",
-      uploadedBy: "Prof. Smith",
-      date: "2 days ago"
-    },
-    {
-      id: 2,
-      title: "Web Development Tutorial Series",
-      description: "Step-by-step video tutorials covering HTML, CSS, JavaScript, and React",
-      type: "Video",
-      subject: "Web Development",
-      downloads: 189,
-      rating: 4.6,
-      size: "2.1 GB",
-      uploadedBy: "Prof. Davis",
-      date: "1 week ago"
-    },
-    {
-      id: 3,
-      title: "Database Management Systems Notes",
-      description: "Comprehensive notes covering SQL, normalization, and database design",
-      type: "PDF",
-      subject: "Database",
-      downloads: 156,
-      rating: 4.5,
-      size: "8.7 MB",
-      uploadedBy: "Prof. Wilson",
-      date: "3 days ago"
-    },
-    {
-      id: 4,
-      title: "Python Programming Examples",
-      description: "Collection of Python code examples and mini-projects",
-      type: "Code",
-      subject: "Programming",
-      downloads: 203,
-      rating: 4.7,
-      size: "3.4 MB",
-      uploadedBy: "Prof. Johnson",
-      date: "5 days ago"
-    },
-    {
-      id: 5,
-      title: "Operating Systems Lab Manual",
-      description: "Lab exercises and assignments for OS concepts",
-      type: "PDF",
-      subject: "Operating Systems",
-      downloads: 134,
-      rating: 4.3,
-      size: "12.5 MB",
-      uploadedBy: "Prof. Anderson",
-      date: "1 week ago"
-    },
-    {
-      id: 6,
-      title: "Machine Learning Lecture Videos",
-      description: "Complete ML course with practical implementations",
-      type: "Video",
-      subject: "Machine Learning",
-      downloads: 78,
-      rating: 4.9,
-      size: "4.2 GB",
-      uploadedBy: "Dr. Kumar",
-      date: "2 weeks ago"
-    }
-  ]
+  const [resources, setResources] = useState<Resource[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState('All')
+  const [stats, setStats] = useState({ totalActive: 0, totalAvailable: 0, totalBorrowed: 0 })
 
-  const getTypeIcon = (type: string) => {
-    const icons = {
-      PDF: <FileText className="h-4 w-4" />,
-      Video: <Video className="h-4 w-4" />,
-      Code: <Code className="h-4 w-4" />
+  useEffect(() => {
+    fetchResources()
+    
+    // Set up real-time polling to fetch new data every 30 seconds
+    const interval = setInterval(() => {
+      fetchResources()
+    }, 30000) // 30 seconds
+    
+    return () => clearInterval(interval)
+  }, [])
+
+  const fetchResources = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch('/api/student/resources?limit=100')
+      if (!response.ok) {
+        throw new Error('Failed to fetch resources')
+      }
+      const data = await response.json()
+      setResources(data.resources || [])
+      setStats(data.stats || { totalActive: 0, totalAvailable: 0, totalBorrowed: 0 })
+    } catch (error) {
+      console.error('Error fetching resources:', error)
+      setError('Failed to load resources. Please try again later.')
+    } finally {
+      setLoading(false)
     }
-    return icons[type as keyof typeof icons] || <FileText className="h-4 w-4" />
   }
 
-  const getTypeColor = (type: string) => {
-    const colors = {
-      PDF: "bg-red-500/10 border-red-500/30 text-red-400",
-      Video: "bg-blue-500/10 border-blue-500/30 text-blue-400",
-      Code: "bg-green-500/10 border-green-500/30 text-green-400"
+  const filteredResources = resources.filter(resource => {
+    const matchesSearch = resource.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         resource.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (resource.author && resource.author.toLowerCase().includes(searchTerm.toLowerCase()))
+    const matchesCategory = selectedCategory === 'All' || resource.category === selectedCategory.toLowerCase()
+    return matchesSearch && matchesCategory
+  })
+
+  const getCategoryIcon = (category: string) => {
+    const icons = {
+      book: <BookOpen className="h-4 w-4" />,
+      equipment: <Wrench className="h-4 w-4" />,
+      facility: <Building className="h-4 w-4" />
     }
-    return colors[type as keyof typeof colors] || "bg-zinc-500/10 border-zinc-500/30 text-zinc-400"
+    return icons[category as keyof typeof icons] || <FileText className="h-4 w-4" />
+  }
+
+  const getCategoryColor = (category: string) => {
+    const colors = {
+      book: "bg-blue-500/10 border-blue-500/30 text-blue-400",
+      equipment: "bg-green-500/10 border-green-500/30 text-green-400",
+      facility: "bg-purple-500/10 border-purple-500/30 text-purple-400"
+    }
+    return colors[category as keyof typeof colors] || "bg-zinc-500/10 border-zinc-500/30 text-zinc-400"
+  }
+
+  const getConditionColor = (condition: string) => {
+    const colors = {
+      excellent: "text-green-400",
+      good: "text-blue-400",
+      fair: "text-yellow-400",
+      damaged: "text-red-400"
+    }
+    return colors[condition as keyof typeof colors] || "text-zinc-400"
+  }
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    })
   }
 
   return (
@@ -130,9 +167,15 @@ export default function StudentResourcesPage() {
                   <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-400" />
                   <Input 
                     placeholder="Search resources..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10 w-64 bg-zinc-800/50 border-zinc-700 text-white placeholder-zinc-400"
                   />
                 </div>
+                <Button onClick={fetchResources} variant="outline" className="border-zinc-700 text-zinc-400 hover:text-white" disabled={loading}>
+                  <Clock className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                  {loading ? 'Refreshing...' : 'Refresh'}
+                </Button>
                 <Button variant="outline" className="border-zinc-700 text-zinc-400 hover:text-white">
                   <Filter className="h-4 w-4 mr-2" />
                   Filter
@@ -152,7 +195,7 @@ export default function StudentResourcesPage() {
                     <BookOpen className="h-6 w-6 text-[#e78a53]" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-white">156</p>
+                    <p className="text-2xl font-bold text-white">{loading ? '--' : stats.totalActive}</p>
                     <p className="text-zinc-400 text-sm">Total Resources</p>
                   </div>
                 </div>
@@ -166,8 +209,8 @@ export default function StudentResourcesPage() {
                     <Download className="h-6 w-6 text-[#e78a53]" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-white">1.2K</p>
-                    <p className="text-zinc-400 text-sm">Downloads</p>
+                    <p className="text-2xl font-bold text-white">{loading ? '--' : resources.reduce((sum, r) => sum + r.totalBorrows, 0)}</p>
+                    <p className="text-zinc-400 text-sm">Total Borrows</p>
                   </div>
                 </div>
               </CardContent>
@@ -177,11 +220,11 @@ export default function StudentResourcesPage() {
               <CardContent className="p-6">
                 <div className="flex items-center gap-3">
                   <div className="p-3 bg-[#e78a53]/10 rounded-lg">
-                    <Star className="h-6 w-6 text-[#e78a53]" />
+                    <Eye className="h-6 w-6 text-[#e78a53]" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-white">4.6</p>
-                    <p className="text-zinc-400 text-sm">Avg Rating</p>
+                    <p className="text-2xl font-bold text-white">{loading ? '--' : stats.totalAvailable}</p>
+                    <p className="text-zinc-400 text-sm">Available Now</p>
                   </div>
                 </div>
               </CardContent>
@@ -194,8 +237,8 @@ export default function StudentResourcesPage() {
                     <Clock className="h-6 w-6 text-[#e78a53]" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-white">12</p>
-                    <p className="text-zinc-400 text-sm">New This Week</p>
+                    <p className="text-2xl font-bold text-white">{loading ? '--' : stats.totalBorrowed}</p>
+                    <p className="text-zinc-400 text-sm">Currently Borrowed</p>
                   </div>
                 </div>
               </CardContent>
@@ -206,12 +249,13 @@ export default function StudentResourcesPage() {
           <div className="mb-8">
             <h2 className="text-xl font-bold text-white mb-4">Categories</h2>
             <div className="flex flex-wrap gap-3">
-              {["All", "Computer Science", "Mathematics", "Web Development", "Database", "Programming", "Machine Learning"].map((category) => (
+              {["All", "Book", "Equipment", "Facility"].map((category) => (
                 <Badge
                   key={category}
                   variant="outline"
+                  onClick={() => setSelectedCategory(category)}
                   className={`px-4 py-2 cursor-pointer transition-colors ${
-                    category === "All"
+                    category === selectedCategory
                       ? "bg-[#e78a53]/10 border-[#e78a53]/30 text-[#e78a53]"
                       : "border-zinc-700 text-zinc-400 hover:text-white hover:border-zinc-600"
                   }`}
@@ -223,64 +267,150 @@ export default function StudentResourcesPage() {
           </div>
 
           {/* Resources Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {resources.map((resource) => (
-              <Card key={resource.id} className="bg-zinc-900/50 border-zinc-800 hover:bg-zinc-900/70 transition-all">
-                <CardHeader className="pb-4">
-                  <div className="flex items-start justify-between">
-                    <Badge className={getTypeColor(resource.type)}>
-                      {getTypeIcon(resource.type)}
-                      <span className="ml-1">{resource.type}</span>
-                    </Badge>
-                    <div className="flex items-center gap-1 text-yellow-400">
-                      <Star className="h-3 w-3 fill-current" />
-                      <span className="text-xs text-zinc-400">{resource.rating}</span>
+          {loading ? (
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#e78a53] mx-auto"></div>
+              <p className="text-zinc-400 mt-4">Loading resources...</p>
+            </div>
+          ) : error ? (
+            <div className="text-center py-12">
+              <p className="text-red-400 mb-4">{error}</p>
+              <Button onClick={fetchResources} variant="outline" className="border-zinc-700 text-zinc-400 hover:text-white">
+                Try Again
+              </Button>
+            </div>
+          ) : filteredResources.length === 0 ? (
+            <div className="text-center py-12">
+              <BookOpen className="h-16 w-16 text-zinc-600 mx-auto mb-4" />
+              <p className="text-zinc-400 text-lg">No resources found</p>
+              <p className="text-zinc-500 text-sm mt-2">Try adjusting your search or category filter</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredResources.map((resource) => (
+                <Card key={resource._id} className="bg-zinc-900/50 border-zinc-800 hover:bg-zinc-900/70 transition-all">
+                  {resource.image && (
+                    <div className="h-48 bg-zinc-800 rounded-t-lg overflow-hidden">
+                      <img 
+                        src={resource.image} 
+                        alt={resource.name}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
-                  </div>
-                  <CardTitle className="text-white text-lg line-clamp-2">{resource.title}</CardTitle>
-                  <p className="text-zinc-400 text-sm line-clamp-2">{resource.description}</p>
-                </CardHeader>
-                
-                <CardContent className="pt-0">
-                  <div className="space-y-3 mb-4">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-zinc-400">Subject</span>
-                      <span className="text-zinc-300">{resource.subject}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-zinc-400">Size</span>
-                      <span className="text-zinc-300">{resource.size}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-zinc-400">Downloads</span>
-                      <div className="flex items-center gap-1 text-zinc-300">
-                        <Download className="h-3 w-3" />
-                        {resource.downloads}
+                  )}
+                  <CardHeader className="pb-4">
+                    <div className="flex items-start justify-between">
+                      <Badge className={getCategoryColor(resource.category)}>
+                        {getCategoryIcon(resource.category)}
+                        <span className="ml-1 capitalize">{resource.category}</span>
+                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className={`text-xs ${resource.isAvailable ? 'border-green-500/30 text-green-400' : 'border-red-500/30 text-red-400'}`}>
+                          {resource.isAvailable ? 'Available' : 'Unavailable'}
+                        </Badge>
                       </div>
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-zinc-400">Uploaded by</span>
-                      <span className="text-zinc-300">{resource.uploadedBy}</span>
+                    <CardTitle className="text-white text-lg line-clamp-2">{resource.name}</CardTitle>
+                    <p className="text-zinc-400 text-sm line-clamp-2">{resource.description}</p>
+                  </CardHeader>
+                  
+                  <CardContent className="pt-0">
+                    <div className="space-y-3 mb-4">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-zinc-400">Location</span>
+                        <span className="text-zinc-300">{resource.location}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-zinc-400">Condition</span>
+                        <span className={`capitalize ${getConditionColor(resource.condition)}`}>
+                          {resource.condition}
+                        </span>
+                      </div>
+                      {resource.author && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-zinc-400">Author</span>
+                          <span className="text-zinc-300">{resource.author}</span>
+                        </div>
+                      )}
+                      {resource.brand && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-zinc-400">Brand</span>
+                          <span className="text-zinc-300">{resource.brand}</span>
+                        </div>
+                      )}
+                      {resource.capacity && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-zinc-400">Capacity</span>
+                          <span className="text-zinc-300">{resource.capacity} people</span>
+                        </div>
+                      )}
+                      {resource.totalCopies && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-zinc-400">Copies</span>
+                          <span className="text-zinc-300">{resource.availableCopies}/{resource.totalCopies}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between text-sm">
+                        <span className="text-zinc-400">Total Borrows</span>
+                        <div className="flex items-center gap-1 text-zinc-300">
+                          <Download className="h-3 w-3" />
+                          {resource.totalBorrows}
+                        </div>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-zinc-400">Added</span>
+                        <span className="text-zinc-300">{formatDate(resource.createdAt)}</span>
+                      </div>
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-zinc-400">Date</span>
-                      <span className="text-zinc-300">{resource.date}</span>
-                    </div>
-                  </div>
 
-                  <div className="flex gap-2">
-                    <Button className="flex-1 bg-[#e78a53] hover:bg-[#e78a53]/90">
-                      <Download className="h-4 w-4 mr-2" />
-                      Download
-                    </Button>
-                    <Button variant="outline" className="border-zinc-700 text-zinc-400 hover:text-white">
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                    {resource.tags && resource.tags.length > 0 && (
+                      <div className="mb-4">
+                        <div className="flex flex-wrap gap-1">
+                          {resource.tags.slice(0, 3).map((tag, index) => (
+                            <Badge key={index} variant="secondary" className="bg-zinc-800/50 text-zinc-400 text-xs">
+                              #{tag}
+                            </Badge>
+                          ))}
+                          {resource.tags.length > 3 && (
+                            <Badge variant="secondary" className="bg-zinc-800/50 text-zinc-400 text-xs">
+                              +{resource.tags.length - 3} more
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex gap-2">
+                      <Button 
+                        className="flex-1 bg-[#e78a53] hover:bg-[#e78a53]/90"
+                        disabled={!resource.isAvailable || resource.status !== 'active'}
+                      >
+                        {resource.category === 'book' ? (
+                          <>
+                            <BookOpen className="h-4 w-4 mr-2" />
+                            Borrow
+                          </>
+                        ) : resource.category === 'facility' ? (
+                          <>
+                            <Calendar className="h-4 w-4 mr-2" />
+                            Book
+                          </>
+                        ) : (
+                          <>
+                            <Download className="h-4 w-4 mr-2" />
+                            Request
+                          </>
+                        )}
+                      </Button>
+                      <Button variant="outline" className="border-zinc-700 text-zinc-400 hover:text-white">
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
 
           {/* Recently Downloaded */}
           <div className="mt-12">
