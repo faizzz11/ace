@@ -11,24 +11,22 @@ export async function GET(request: Request) {
     await connectToDatabase();
     const { searchParams } = new URL(request.url);
     const category = searchParams.get('category');
-    const subject = searchParams.get('subject');
-    const course = searchParams.get('course');
     const status = searchParams.get('status');
     const search = searchParams.get('search');
     const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '10');
+    const limit = parseInt(searchParams.get('limit') || '50'); // Increased limit for admin
 
     // Build query
     let query: any = {};
-    if (category) query.category = category;
-    if (subject) query.subject = subject;
-    if (course) query.course = course;
-    if (status) query.status = status;
+    if (category && category !== 'all') query.category = category;
+    if (status && status !== 'all') query.status = status;
     if (search) {
       query.$or = [
-        { title: { $regex: search, $options: 'i' } },
+        { name: { $regex: search, $options: 'i' } },
         { description: { $regex: search, $options: 'i' } },
-        { author: { $regex: search, $options: 'i' } }
+        { author: { $regex: search, $options: 'i' } },
+        { brand: { $regex: search, $options: 'i' } },
+        { location: { $regex: search, $options: 'i' } }
       ];
     }
 
@@ -64,52 +62,83 @@ export async function POST(request: Request) {
     await connectToDatabase();
     const resourceData = await request.json();
 
-    const {
-      title,
-      description,
-      category,
-      subject,
-      course,
-      semester,
-      fileUrl,
-      fileSize,
-      fileName,
-      linkUrl,
-      author,
-      uploadedBy,
-      isPublic,
-      status,
-      tags,
-      difficulty
-    } = resourceData;
-
-    // Validation
-    if (!title || !description || !category || !uploadedBy) {
+    // Basic validation
+    if (!resourceData.name || !resourceData.description || !resourceData.category || !resourceData.location) {
       return NextResponse.json(
-        { error: "Required fields: title, description, category, uploadedBy" },
+        { error: "Required fields: name, description, category, location" },
         { status: 400 }
       );
     }
 
-    const newResource = await ResourceModel.create({
-      title,
-      description,
-      category,
-      subject: subject || '',
-      course: course || '',
-      semester: semester || '',
-      fileUrl: fileUrl || '',
-      fileSize: fileSize || null,
-      fileName: fileName || '',
-      linkUrl: linkUrl || '',
-      author: author || '',
-      uploadedBy,
-      downloadCount: 0,
-      isPublic: isPublic !== undefined ? isPublic : true,
-      status: status || 'active',
-      tags: tags || [],
-      difficulty: difficulty || null
-    });
+    // Category-specific validation
+    if (resourceData.category === 'book' && !resourceData.author) {
+      return NextResponse.json(
+        { error: "Author is required for books" },
+        { status: 400 }
+      );
+    }
+
+    if (resourceData.category === 'book' && !resourceData.totalCopies) {
+      return NextResponse.json(
+        { error: "Total copies is required for books" },
+        { status: 400 }
+      );
+    }
+
+    if (resourceData.category === 'facility' && !resourceData.capacity) {
+      return NextResponse.json(
+        { error: "Capacity is required for facilities" },
+        { status: 400 }
+      );
+    }
+
+    // Prepare the resource data
+    const newResourceData = {
+      name: resourceData.name,
+      description: resourceData.description,
+      category: resourceData.category,
+      location: resourceData.location,
+      condition: resourceData.condition || 'good',
+      isAvailable: resourceData.isAvailable !== undefined ? resourceData.isAvailable : true,
+      status: resourceData.status || 'active',
+      requiresApproval: resourceData.requiresApproval || false,
+      maxBorrowDuration: resourceData.maxBorrowDuration || null,
+      tags: resourceData.tags || [],
+      totalBorrows: 0,
+      currentBorrower: null,
+      dueDate: null
+    };
+
+    // Add category-specific fields
+    if (resourceData.category === 'book') {
+      Object.assign(newResourceData, {
+        isbn: resourceData.isbn || '',
+        author: resourceData.author,
+        publisher: resourceData.publisher || '',
+        edition: resourceData.edition || '',
+        totalCopies: resourceData.totalCopies,
+        availableCopies: resourceData.totalCopies // Initially all copies are available
+      });
+    }
+
+    if (resourceData.category === 'equipment') {
+      Object.assign(newResourceData, {
+        serialNumber: resourceData.serialNumber || '',
+        model: resourceData.model || '',
+        brand: resourceData.brand || '',
+        specifications: resourceData.specifications || ''
+      });
+    }
+
+    if (resourceData.category === 'facility') {
+      Object.assign(newResourceData, {
+        capacity: resourceData.capacity,
+        amenities: resourceData.amenities || [],
+        operatingHours: resourceData.operatingHours || { start: '09:00', end: '17:00' }
+      });
+    }
+
+    const newResource = await ResourceModel.create(newResourceData);
 
     return NextResponse.json({
       message: "Resource created successfully",

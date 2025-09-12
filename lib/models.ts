@@ -161,23 +161,45 @@ const EventSchema = new Schema(
 
 const ResourceSchema = new Schema(
   {
-    title: { type: String, required: true },
+    name: { type: String, required: true },
     description: { type: String, required: true },
-    category: { type: String, enum: ['document', 'video', 'audio', 'image', 'link', 'other'], required: true },
-    subject: { type: String },
-    course: { type: String },
-    semester: { type: String },
-    fileUrl: { type: String },
-    fileSize: { type: Number },
-    fileName: { type: String },
-    linkUrl: { type: String },
-    author: { type: String },
-    uploadedBy: { type: String, required: true },
-    downloadCount: { type: Number, default: 0 },
-    isPublic: { type: Boolean, default: true },
-    status: { type: String, enum: ['active', 'archived'], default: 'active' },
+    category: { type: String, enum: ['book', 'equipment', 'facility'], required: true },
+    
+    // Common fields
+    location: { type: String, required: true },
+    isAvailable: { type: Boolean, default: true },
+    condition: { type: String, enum: ['excellent', 'good', 'fair', 'damaged'], default: 'good' },
+    status: { type: String, enum: ['active', 'maintenance', 'retired'], default: 'active' },
     tags: [{ type: String }],
-    difficulty: { type: String, enum: ['beginner', 'intermediate', 'advanced'] },
+    
+    // For Books
+    isbn: { type: String },
+    author: { type: String },
+    publisher: { type: String },
+    edition: { type: String },
+    totalCopies: { type: Number },
+    availableCopies: { type: Number },
+    
+    // For Equipment
+    serialNumber: { type: String },
+    model: { type: String },
+    brand: { type: String },
+    specifications: { type: String },
+    
+    // For Facilities (Seminar Halls)
+    capacity: { type: Number },
+    amenities: [{ type: String }],
+    operatingHours: {
+      start: { type: String },
+      end: { type: String }
+    },
+    
+    // Booking/Borrowing info
+    maxBorrowDuration: { type: Number }, // in days for books/equipment, hours for facilities
+    requiresApproval: { type: Boolean, default: false },
+    currentBorrower: { type: String },
+    dueDate: { type: Date },
+    totalBorrows: { type: Number, default: 0 },
   },
   { timestamps: true }
 );
@@ -210,11 +232,42 @@ const InternshipSchema = new Schema(
   { timestamps: true }
 );
 
+const BookingSchema = new Schema(
+  {
+    resourceId: { type: Schema.Types.ObjectId, ref: 'Resource', required: true },
+    userId: { type: Schema.Types.ObjectId, required: true }, // Can be student or teacher
+    userType: { type: String, enum: ['student', 'teacher'], required: true },
+    userName: { type: String, required: true },
+    userEmail: { type: String, required: true },
+    userPhone: { type: String },
+    purpose: { type: String, required: true },
+    startDate: { type: Date, required: true },
+    endDate: { type: Date, required: true },
+    startTime: { type: String }, // For hourly bookings
+    endTime: { type: String }, // For hourly bookings
+    status: { type: String, enum: ['pending', 'approved', 'rejected', 'active', 'completed', 'cancelled'], default: 'pending' },
+    approvedBy: { type: String },
+    approvedAt: { type: Date },
+    rejectedReason: { type: String },
+    totalFee: { type: Number, default: 0 },
+    isPaid: { type: Boolean, default: false },
+    notes: { type: String },
+    returnCondition: { type: String, enum: ['excellent', 'good', 'fair', 'damaged'] },
+    returnNotes: { type: String },
+    returnedAt: { type: Date },
+  },
+  { timestamps: true }
+);
+
 // Indexes for better performance
 EventSchema.index({ startDate: 1, status: 1 });
 EventSchema.index({ eventType: 1 });
-ResourceSchema.index({ category: 1, subject: 1, course: 1 });
-ResourceSchema.index({ status: 1, isPublic: 1 });
+ResourceSchema.index({ category: 1, type: 1, location: 1 });
+ResourceSchema.index({ status: 1, isAvailable: 1 });
+ResourceSchema.index({ name: 'text', description: 'text', location: 'text' });
+ResourceSchema.index({ bookingType: 1, requiresApproval: 1 });
+BookingSchema.index({ resourceId: 1, startDate: 1, endDate: 1 });
+BookingSchema.index({ userId: 1, status: 1 });
 InternshipSchema.index({ applicationDeadline: 1, status: 1 });
 InternshipSchema.index({ company: 1, category: 1 });
 
@@ -226,4 +279,5 @@ export const AttendanceModel = models.Attendance || model("Attendance", Attendan
 export const SectionModel = models.Section || model("Section", SectionSchema);
 export const EventModel = models.Event || model("Event", EventSchema);
 export const ResourceModel = models.Resource || model("Resource", ResourceSchema);
+export const BookingModel = models.Booking || model("Booking", BookingSchema);
 export const InternshipModel = models.Internship || model("Internship", InternshipSchema);
