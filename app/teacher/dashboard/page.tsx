@@ -5,6 +5,7 @@ import { TeacherSidebar } from "@/components/teacher-sidebar"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Calendar, UserCheck, UtensilsCrossed } from "lucide-react"
+import { UserMenu } from "@/components/user-menu"
 
 export default function TeacherDashboardPage() {
     return (
@@ -12,9 +13,12 @@ export default function TeacherDashboardPage() {
             <TeacherSidebar />
             <main className="flex-1 overflow-auto">
                 <header className="bg-zinc-900/50 backdrop-blur-sm border-b border-zinc-800">
-                    <div className="px-8 py-6">
-                        <h1 className="text-3xl font-bold text-white">Teacher Dashboard</h1>
-                        <p className="text-zinc-400 mt-2">Quick access to teaching tools</p>
+                    <div className="px-8 py-6 flex items-center justify-between">
+                        <div>
+                            <h1 className="text-3xl font-bold text-white">Teacher Dashboard</h1>
+                            <p className="text-zinc-400 mt-2">Quick access to teaching tools</p>
+                        </div>
+                        <UserMenu />
                     </div>
                 </header>
 

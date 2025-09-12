@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { StudentSidebar } from "@/components/student-sidebar"
+import { UserMenu } from "@/components/user-menu"
 import {
   Bell,
   ChevronRight,
@@ -141,11 +142,11 @@ export default function StudentDashboard() {
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
-    return date.toLocaleDateString('en-US', { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
     })
   }
 
@@ -163,9 +164,12 @@ export default function StudentDashboard() {
                 <h1 className="text-3xl font-bold text-white mb-2">Campus Events</h1>
                 <p className="text-zinc-400">Discover and join exciting events happening on campus</p>
               </div>
-              <Button variant="ghost" size="icon">
-                <Bell className="h-5 w-5 text-zinc-400" />
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="icon">
+                  <Bell className="h-5 w-5 text-zinc-400" />
+                </Button>
+                <UserMenu />
+              </div>
             </div>
           </div>
         </header>
@@ -234,26 +238,26 @@ export default function StudentDashboard() {
                   </div>
                   <CardTitle className="text-white text-lg leading-tight">{event.title}</CardTitle>
                 </CardHeader>
-                
+
                 <CardContent className="space-y-4">
                   <p className="text-zinc-400 text-sm leading-relaxed">{event.description}</p>
-                  
+
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-zinc-400 text-sm">
                       <Calendar className="h-4 w-4 text-[#e78a53]" />
                       <span>{formatDate(event.date)}</span>
                     </div>
-                    
+
                     <div className="flex items-center gap-2 text-zinc-400 text-sm">
                       <Clock className="h-4 w-4 text-[#e78a53]" />
                       <span>{event.time}</span>
                     </div>
-                    
+
                     <div className="flex items-center gap-2 text-zinc-400 text-sm">
                       <MapPin className="h-4 w-4 text-[#e78a53]" />
                       <span>{event.location}</span>
                     </div>
-                    
+
                     <div className="flex items-center gap-2 text-zinc-400 text-sm">
                       <User className="h-4 w-4 text-[#e78a53]" />
                       <span>{event.organizer}</span>
