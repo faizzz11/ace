@@ -22,7 +22,10 @@ import {
   Bell,
   Camera,
   Store,
-  Timer
+  Timer,
+  RefreshCw,
+  CreditCard,
+  Wallet
 } from "lucide-react"
 
 interface MenuItem {
@@ -50,11 +53,33 @@ export default function TeacherFoodPage() {
   const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false)
   const [isReceiptOpen, setIsReceiptOpen] = useState(false)
   const [currentOrder, setCurrentOrder] = useState<any>(null)
+  const [recentOrders, setRecentOrders] = useState<any[]>([])
+  const [currentUser, setCurrentUser] = useState<any>(null)
+
+  // Get current user info
+  useEffect(() => {
+    try {
+      const user = localStorage.getItem('currentUser')
+      if (user) {
+        const userData = JSON.parse(user)
+        setCurrentUser(userData)
+      }
+    } catch (error) {
+      console.error('Error loading user data:', error)
+    }
+  }, [])
 
   // Fetch menu items from API
   useEffect(() => {
     fetchMenuItems()
   }, [])
+
+  // Fetch recent orders when user is available
+  useEffect(() => {
+    if (currentUser?.id) {
+      fetchRecentOrders()
+    }
+  }, [currentUser])
 
   const fetchMenuItems = async () => {
     setIsLoading(true)
@@ -98,11 +123,63 @@ export default function TeacherFoodPage() {
     canteenCount: new Set(menuItems.map(item => item.canteenId)).size
   }
 
+  const fetchRecentOrders = async () => {
+    if (!currentUser?.id) return
+    
+    try {
+      const response = await fetch(`/api/orders/user?userId=${currentUser.id}&userType=teacher`)
+      const result = await response.json()
+      
+      if (response.ok) {
+        setRecentOrders(result.orders || [])
+      } else {
+        console.error('Error fetching recent orders:', result.error)
+      }
+    } catch (error) {
+      console.error('Error fetching recent orders:', error)
+    }
+  }
+
   const handleOrderSuccess = (order: any) => {
     setCurrentOrder(order)
     setIsReceiptOpen(true)
-    // Refresh menu items to get updated availability
+    // Refresh menu items and recent orders
     fetchMenuItems()
+    fetchRecentOrders()
+  }
+
+  const getStatusColor = (status: string) => {
+    const colors = {
+      placed: "bg-blue-500/10 border-blue-500/30 text-blue-400",
+      confirmed: "bg-green-500/10 border-green-500/30 text-green-400",
+      preparing: "bg-orange-500/10 border-orange-500/30 text-orange-400",
+      ready: "bg-[#e78a53]/10 border-[#e78a53]/30 text-[#e78a53]",
+      completed: "bg-green-500/10 border-green-500/30 text-green-400",
+      cancelled: "bg-red-500/10 border-red-500/30 text-red-400"
+    }
+    return colors[status as keyof typeof colors] || "bg-zinc-500/10 border-zinc-500/30 text-zinc-400"
+  }
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffTime = Math.abs(now.getTime() - date.getTime())
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    
+    if (diffDays === 1) {
+      return `Today, ${date.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`
+    } else if (diffDays === 2) {
+      return `Yesterday, ${date.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`
+    } else if (diffDays <= 7) {
+      return `${diffDays - 1} days ago, ${date.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`
+    } else {
+      return date.toLocaleDateString('en-IN', { 
+        month: 'short', 
+        day: 'numeric',
+        hour: '2-digit', 
+        minute: '2-digit' 
+      })
+    }
   }
 
   return (
@@ -353,6 +430,86 @@ export default function TeacherFoodPage() {
               ))}
             </div>
           )}
+
+          {/* Recent Orders */}
+          <div className="mt-12">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-white">Your Recent Orders</h2>
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="border-zinc-700 text-zinc-400 hover:text-white"
+                onClick={fetchRecentOrders}
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Refresh
+              </Button>
+            </div>
+            
+            {recentOrders.length === 0 ? (
+              <Card className="bg-zinc-900/50 border-zinc-800">
+                <CardContent className="p-8 text-center">
+                  <ShoppingCart className="h-12 w-12 text-zinc-600 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-white mb-2">No recent orders</h3>
+                  <p className="text-zinc-400">Your order history will appear here once you place your first order.</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {recentOrders.map((order) => (
+                  <Card key={order._id} className="bg-zinc-900/50 border-zinc-800">
+                    <CardHeader>
+                      <CardTitle className="text-white text-lg">{order.orderId}</CardTitle>
+                      <div className="flex justify-between items-center">
+                        <p className="text-zinc-400">{formatDate(order.createdAt)}</p>
+                        <Badge className="bg-zinc-700 text-zinc-300">
+                          <Store className="h-3 w-3 mr-1" />
+                          {order.canteenName}
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        {order.items.map((item: any, index: number) => (
+                          <div key={index} className="flex justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="text-zinc-300">{item.name} x{item.quantity}</span>
+                              {item.isVeg && (
+                                <div className="w-3 h-3 border border-green-500 rounded-sm flex items-center justify-center">
+                                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+                                </div>
+                              )}
+                              {item.isSpicy && <span className="text-red-500 text-xs">🌶️</span>}
+                            </div>
+                            <span className="text-zinc-400">₹{item.price * item.quantity}</span>
+                          </div>
+                        ))}
+                        <div className="border-t border-zinc-800 pt-2 mt-2">
+                          <div className="flex justify-between font-semibold">
+                            <span className="text-white">Total</span>
+                            <span className="text-[#e78a53]">₹{order.totalAmount}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center mt-3">
+                        <Badge className={`${getStatusColor(order.status)} border`}>
+                          {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                        </Badge>
+                        <div className="flex items-center gap-1 text-xs text-zinc-400">
+                          {order.paymentMethod === 'online' ? (
+                            <CreditCard className="h-3 w-3" />
+                          ) : (
+                            <Wallet className="h-3 w-3" />
+                          )}
+                          <span>{order.paymentMethod === 'online' ? 'Paid Online' : 'Pay at Counter'}</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Order Dialog */}
