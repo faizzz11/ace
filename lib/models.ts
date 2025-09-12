@@ -332,3 +332,4 @@ export const TimetableModel = models.Timetable || model("Timetable", TimetableSc
 export const AttendanceModel = models.Attendance || model("Attendance", AttendanceSchema);
 export const SectionModel = models.Section || model("Section", SectionSchema);
 export const MenuItemModel = models.MenuItem || model("MenuItem", MenuItemSchema);
+export const StockItemModel = models.StockItem || model("StockItem", StockItemSchema);
