@@ -4,17 +4,9 @@ import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { StudentSidebar } from "@/components/student-sidebar"
 import {
-  Calendar,
-  MapPin,
-  UtensilsCrossed,
-  BookOpen,
-  Users,
-  Briefcase,
-  UserCheck,
   Bell,
-  Settings,
-  LogOut,
   ChevronRight,
   Clock,
   User,
@@ -27,7 +19,11 @@ import {
   Star,
   Eye,
   CalendarDays,
-  Building
+  Building,
+  Briefcase,
+  Users,
+  Calendar,
+  MapPin
 } from "lucide-react"
 
 export default function StudentEventsPage() {
@@ -155,77 +151,7 @@ export default function StudentEventsPage() {
 
   return (
     <div className="min-h-screen bg-black flex">
-      {/* Sidebar */}
-      <aside className="w-64 bg-zinc-900/50 backdrop-blur-sm border-r border-zinc-800 flex flex-col">
-        <div className="p-6">
-          <Link href="/student/dashboard" className="text-[#e78a53] font-bold text-xl">
-            ACE Campus
-          </Link>
-          <p className="text-zinc-400 text-sm mt-1">Student Portal</p>
-        </div>
-
-        <nav className="flex-1 px-4 space-y-2">
-          <Link href="/student/timetable">
-            <div className="flex items-center gap-3 px-4 py-3 text-zinc-400 hover:text-white hover:bg-zinc-800/50 rounded-lg transition-colors">
-              <Calendar className="h-5 w-5" />
-              <span>Timetable</span>
-            </div>
-          </Link>
-          
-          <Link href="/student/events">
-            <div className="flex items-center gap-3 px-4 py-3 text-white bg-[#e78a53]/10 border-l-2 border-[#e78a53] rounded-lg">
-              <Users className="h-5 w-5 text-[#e78a53]" />
-              <span>Events</span>
-            </div>
-          </Link>
-
-          <Link href="/student/food">
-            <div className="flex items-center gap-3 px-4 py-3 text-zinc-400 hover:text-white hover:bg-zinc-800/50 rounded-lg transition-colors">
-              <UtensilsCrossed className="h-5 w-5" />
-              <span>Food Ordering</span>
-            </div>
-          </Link>
-
-          <Link href="/student/resources">
-            <div className="flex items-center gap-3 px-4 py-3 text-zinc-400 hover:text-white hover:bg-zinc-800/50 rounded-lg transition-colors">
-              <BookOpen className="h-5 w-5" />
-              <span>Resources</span>
-            </div>
-          </Link>
-
-          <Link href="/student/map">
-            <div className="flex items-center gap-3 px-4 py-3 text-zinc-400 hover:text-white hover:bg-zinc-800/50 rounded-lg transition-colors">
-              <MapPin className="h-5 w-5" />
-              <span>Campus Map</span>
-            </div>
-          </Link>
-
-          <Link href="/student/attendance">
-            <div className="flex items-center gap-3 px-4 py-3 text-zinc-400 hover:text-white hover:bg-zinc-800/50 rounded-lg transition-colors">
-              <UserCheck className="h-5 w-5" />
-              <span>Attendance</span>
-            </div>
-          </Link>
-
-          <Link href="/student/internships">
-            <div className="flex items-center gap-3 px-4 py-3 text-zinc-400 hover:text-white hover:bg-zinc-800/50 rounded-lg transition-colors">
-              <Briefcase className="h-5 w-5" />
-              <span>Internships</span>
-            </div>
-          </Link>
-        </nav>
-
-        <div className="p-4 border-t border-zinc-800">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon">
-              <Settings className="h-5 w-5 text-zinc-400" />
-            </Button>
-            <Button variant="ghost" size="icon">
-              <LogOut className="h-5 w-5 text-zinc-400" />
-            </Button>
-          </div>
-        </div>
-      </aside>
+      <StudentSidebar />
 
       {/* Main Content */}
       <main className="flex-1 overflow-auto">

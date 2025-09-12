@@ -148,8 +148,8 @@ export default function StudentResourcesPage() {
             <Card className="bg-zinc-900/50 border-zinc-800">
               <CardContent className="p-6">
                 <div className="flex items-center gap-3">
-                  <div className="p-3 bg-blue-500/10 rounded-lg">
-                    <BookOpen className="h-6 w-6 text-blue-400" />
+                  <div className="p-3 bg-[#e78a53]/10 rounded-lg">
+                    <BookOpen className="h-6 w-6 text-[#e78a53]" />
                   </div>
                   <div>
                     <p className="text-2xl font-bold text-white">156</p>
@@ -162,8 +162,8 @@ export default function StudentResourcesPage() {
             <Card className="bg-zinc-900/50 border-zinc-800">
               <CardContent className="p-6">
                 <div className="flex items-center gap-3">
-                  <div className="p-3 bg-green-500/10 rounded-lg">
-                    <Download className="h-6 w-6 text-green-400" />
+                  <div className="p-3 bg-[#e78a53]/10 rounded-lg">
+                    <Download className="h-6 w-6 text-[#e78a53]" />
                   </div>
                   <div>
                     <p className="text-2xl font-bold text-white">1.2K</p>
@@ -176,8 +176,8 @@ export default function StudentResourcesPage() {
             <Card className="bg-zinc-900/50 border-zinc-800">
               <CardContent className="p-6">
                 <div className="flex items-center gap-3">
-                  <div className="p-3 bg-yellow-500/10 rounded-lg">
-                    <Star className="h-6 w-6 text-yellow-400" />
+                  <div className="p-3 bg-[#e78a53]/10 rounded-lg">
+                    <Star className="h-6 w-6 text-[#e78a53]" />
                   </div>
                   <div>
                     <p className="text-2xl font-bold text-white">4.6</p>

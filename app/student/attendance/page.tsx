@@ -93,8 +93,8 @@ export default function StudentAttendancePage() {
 
   const getStatusColor = (status: string) => {
     const colors = {
-      good: "bg-green-500/10 border-green-500/30 text-green-400",
-      warning: "bg-yellow-500/10 border-yellow-500/30 text-yellow-400",
+      good: "bg-[#e78a53]/10 border-[#e78a53]/30 text-[#e78a53]",
+      warning: "bg-orange-400/10 border-orange-400/30 text-orange-400",
       critical: "bg-red-500/10 border-red-500/30 text-red-400"
     }
     return colors[status as keyof typeof colors] || "bg-zinc-500/10 border-zinc-500/30 text-zinc-400"
@@ -163,8 +163,8 @@ export default function StudentAttendancePage() {
             <Card className="bg-zinc-900/50 border-zinc-800">
               <CardContent className="p-6">
                 <div className="flex items-center gap-3">
-                  <div className="p-3 bg-green-500/10 rounded-lg">
-                    <CheckCircle className="h-6 w-6 text-green-400" />
+                  <div className="p-3 bg-[#e78a53]/10 rounded-lg">
+                    <CheckCircle className="h-6 w-6 text-[#e78a53]" />
                   </div>
                   <div>
                     <p className="text-2xl font-bold text-white">{overallAttendance.attended}</p>
@@ -177,8 +177,8 @@ export default function StudentAttendancePage() {
             <Card className="bg-zinc-900/50 border-zinc-800">
               <CardContent className="p-6">
                 <div className="flex items-center gap-3">
-                  <div className="p-3 bg-blue-500/10 rounded-lg">
-                    <Calendar className="h-6 w-6 text-blue-400" />
+                  <div className="p-3 bg-[#e78a53]/10 rounded-lg">
+                    <Calendar className="h-6 w-6 text-[#e78a53]" />
                   </div>
                   <div>
                     <p className="text-2xl font-bold text-white">{overallAttendance.total}</p>
@@ -191,8 +191,8 @@ export default function StudentAttendancePage() {
             <Card className="bg-zinc-900/50 border-zinc-800">
               <CardContent className="p-6">
                 <div className="flex items-center gap-3">
-                  <div className="p-3 bg-yellow-500/10 rounded-lg">
-                    <AlertTriangle className="h-6 w-6 text-yellow-400" />
+                  <div className="p-3 bg-red-500/10 rounded-lg">
+                    <AlertTriangle className="h-6 w-6 text-red-400" />
                   </div>
                   <div>
                     <p className="text-2xl font-bold text-white">
@@ -236,9 +236,9 @@ export default function StudentAttendancePage() {
                       <div 
                         className={`h-2 rounded-full ${
                           subject.percentage >= 75 
-                            ? 'bg-green-500' 
+                            ? 'bg-[#e78a53]' 
                             : subject.percentage >= 65 
-                            ? 'bg-yellow-500' 
+                            ? 'bg-orange-400' 
                             : 'bg-red-500'
                         }`}
                         style={{ width: `${subject.percentage}%` }}
@@ -270,11 +270,11 @@ export default function StudentAttendancePage() {
                       <div className="flex items-center gap-3">
                         <div className={`p-2 rounded-lg ${
                           record.status === 'present' 
-                            ? 'bg-green-500/10' 
+                            ? 'bg-[#e78a53]/10' 
                             : 'bg-red-500/10'
                         }`}>
                           {record.status === 'present' ? (
-                            <CheckCircle className="h-4 w-4 text-green-400" />
+                            <CheckCircle className="h-4 w-4 text-[#e78a53]" />
                           ) : (
                             <XCircle className="h-4 w-4 text-red-400" />
                           )}
@@ -323,11 +323,11 @@ export default function StudentAttendancePage() {
                         </div>
                       </div>
 
-                      <div className="p-3 bg-green-500/10 border border-green-500/30 rounded-lg">
+                      <div className="p-3 bg-[#e78a53]/10 border border-[#e78a53]/30 rounded-lg">
                         <div className="flex items-start gap-3">
-                          <CheckCircle className="h-5 w-5 text-green-400 mt-0.5" />
+                          <CheckCircle className="h-5 w-5 text-[#e78a53] mt-0.5" />
                           <div>
-                            <p className="text-green-400 font-medium">Great Job!</p>
+                            <p className="text-[#e78a53] font-medium">Great Job!</p>
                             <p className="text-zinc-300 text-sm">Your Web Development attendance is excellent. Keep it up!</p>
                           </div>
                         </div>
