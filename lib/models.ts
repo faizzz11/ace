@@ -22,6 +22,37 @@ MenuItemSchema.index({ canteenId: 1 });
 MenuItemSchema.index({ canteenId: 1, category: 1 });
 MenuItemSchema.index({ canteenId: 1, isAvailable: 1 });
 
+const StockItemSchema = new Schema(
+  {
+    canteenId: { type: Schema.Types.ObjectId, ref: 'Canteen', required: true },
+    name: { type: String, required: true },
+    category: { type: String, required: true },
+    currentStock: { type: Number, required: true, min: 0 },
+    unit: { type: String, required: true }, // kg, liters, pieces, etc.
+    minimumStock: { type: Number, required: true, min: 0 },
+    maximumStock: { type: Number, required: true, min: 0 },
+    costPerUnit: { type: Number, required: true, min: 0 },
+    supplier: { type: String },
+    lastRestocked: { type: Date },
+    expiryDate: { type: Date },
+    status: { 
+      type: String, 
+      enum: ['good', 'low', 'critical', 'out_of_stock'], 
+      default: 'good' 
+    },
+    description: { type: String },
+    location: { type: String }, // Storage location
+    batchNumber: { type: String },
+  },
+  { timestamps: true }
+);
+
+// Index for efficient querying
+StockItemSchema.index({ canteenId: 1 });
+StockItemSchema.index({ canteenId: 1, category: 1 });
+StockItemSchema.index({ canteenId: 1, status: 1 });
+StockItemSchema.index({ canteenId: 1, currentStock: 1 });
+
 const StudentSchema = new Schema(
   {
     firstName: { type: String, required: true },
@@ -163,3 +194,4 @@ export const TimetableModel = models.Timetable || model("Timetable", TimetableSc
 export const AttendanceModel = models.Attendance || model("Attendance", AttendanceSchema);
 export const SectionModel = models.Section || model("Section", SectionSchema);
 export const MenuItemModel = models.MenuItem || model("MenuItem", MenuItemSchema);
+export const StockItemModel = models.StockItem || model("StockItem", StockItemSchema);
