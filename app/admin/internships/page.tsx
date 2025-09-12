@@ -437,6 +437,73 @@ export default function AdminInternshipsPage() {
         </header>
 
         <div className="p-8">
+          {/* Application Statistics Summary */}
+          {internships.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+              <Card className="bg-zinc-900/50 border-zinc-800">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-[#e78a53]/10 rounded-lg">
+                      <Briefcase className="h-5 w-5 text-[#e78a53]" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-white">{internships.length}</p>
+                      <p className="text-sm text-zinc-400">Total Internships</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-zinc-900/50 border-zinc-800">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-green-500/10 rounded-lg">
+                      <CheckCircle className="h-5 w-5 text-green-400" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-white">
+                        {internships.filter(i => i.status === 'active').length}
+                      </p>
+                      <p className="text-sm text-zinc-400">Active Internships</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-zinc-900/50 border-zinc-800">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-500/10 rounded-lg">
+                      <Users className="h-5 w-5 text-blue-400" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-white">
+                        {internships.reduce((sum, i) => sum + i.applicationCount, 0)}
+                      </p>
+                      <p className="text-sm text-zinc-400">Total Applications</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-zinc-900/50 border-zinc-800">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-yellow-500/10 rounded-lg">
+                      <AlertCircle className="h-5 w-5 text-yellow-400" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-white">
+                        {internships.filter(i => i.applicationCount > 0).length}
+                      </p>
+                      <p className="text-sm text-zinc-400">With Applications</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+          
           {/* Filters */}
           <Card className="bg-zinc-900/50 border-zinc-800 mb-6">
             <CardContent className="p-4">
@@ -527,6 +594,12 @@ export default function AdminInternshipsPage() {
                               {internship.category}
                             </Badge>
                           )}
+                          {internship.applicationCount > 0 && (
+                            <Badge className="bg-blue-600/20 border-blue-600/30 text-blue-400 animate-pulse">
+                              <Users className="h-3 w-3 mr-1" />
+                              {internship.applicationCount} New
+                            </Badge>
+                          )}
                         </div>
                         
                         <p className="text-lg font-medium text-zinc-300 mb-2">{internship.company}</p>
@@ -563,12 +636,17 @@ export default function AdminInternshipsPage() {
                       <div className="flex items-center gap-2 ml-4">
                         <Button
                           size="sm"
-                          variant="outline"
                           onClick={() => viewApplications(internship)}
-                          className="border-blue-600 text-blue-400 hover:bg-blue-600/20"
+                          className={`${
+                            internship.applicationCount > 0 
+                              ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                              : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                          }`}
                         >
                           <Users className="h-4 w-4 mr-1" />
-                          {internship.applicationCount}
+                          {internship.applicationCount > 0 
+                            ? `View ${internship.applicationCount} Application${internship.applicationCount > 1 ? 's' : ''}` 
+                            : 'No Applications'}
                         </Button>
                         <Button
                           size="sm"
