@@ -1,5 +1,27 @@
 import mongoose, { Schema, models, model } from "mongoose";
 
+const MenuItemSchema = new Schema(
+  {
+    canteenId: { type: Schema.Types.ObjectId, ref: 'Canteen', required: true },
+    name: { type: String, required: true },
+    description: { type: String },
+    price: { type: Number, required: true },
+    category: { type: String, required: true },
+    image: { type: String }, // Base64 encoded image or URL
+    isVeg: { type: Boolean, default: true },
+    isSpicy: { type: Boolean, default: false },
+    prepTime: { type: Number, default: 15 }, // in minutes
+    rating: { type: Number, default: 4.0, min: 0, max: 5 },
+    isAvailable: { type: Boolean, default: true },
+  },
+  { timestamps: true }
+);
+
+// Index for efficient querying
+MenuItemSchema.index({ canteenId: 1 });
+MenuItemSchema.index({ canteenId: 1, category: 1 });
+MenuItemSchema.index({ canteenId: 1, isAvailable: 1 });
+
 const StudentSchema = new Schema(
   {
     firstName: { type: String, required: true },
@@ -134,150 +156,10 @@ const SectionSchema = new Schema(
 SectionSchema.index({ teacherId: 1, className: 1, subjectName: 1 });
 SectionSchema.index({ className: 1 });
 
-const EventSchema = new Schema(
-  {
-    title: { type: String, required: true },
-    description: { type: String, required: true },
-    eventType: { type: String, enum: ['academic', 'cultural', 'sports', 'workshop', 'seminar', 'other'], required: true },
-    startDate: { type: Date, required: true },
-    endDate: { type: Date, required: true },
-    startTime: { type: String, required: true },
-    endTime: { type: String, required: true },
-    venue: { type: String, required: true },
-    organizer: { type: String, required: true },
-    contactEmail: { type: String },
-    contactPhone: { type: String },
-    maxParticipants: { type: Number },
-    registrationDeadline: { type: Date },
-    fee: { type: Number, default: 0 },
-    status: { type: String, enum: ['draft', 'published', 'ongoing', 'completed', 'cancelled'], default: 'draft' },
-    imageUrl: { type: String },
-    tags: [{ type: String }],
-    requirements: [{ type: String }],
-    isPublic: { type: Boolean, default: true },
-  },
-  { timestamps: true }
-);
-
-const ResourceSchema = new Schema(
-  {
-    name: { type: String, required: true },
-    description: { type: String, required: true },
-    category: { type: String, enum: ['book', 'equipment', 'facility'], required: true },
-    
-    // Common fields
-    location: { type: String, required: true },
-    isAvailable: { type: Boolean, default: true },
-    condition: { type: String, enum: ['excellent', 'good', 'fair', 'damaged'], default: 'good' },
-    status: { type: String, enum: ['active', 'maintenance', 'retired'], default: 'active' },
-    tags: [{ type: String }],
-    
-    // For Books
-    isbn: { type: String },
-    author: { type: String },
-    publisher: { type: String },
-    edition: { type: String },
-    totalCopies: { type: Number },
-    availableCopies: { type: Number },
-    
-    // For Equipment
-    serialNumber: { type: String },
-    model: { type: String },
-    brand: { type: String },
-    specifications: { type: String },
-    
-    // For Facilities (Seminar Halls)
-    capacity: { type: Number },
-    amenities: [{ type: String }],
-    operatingHours: {
-      start: { type: String },
-      end: { type: String }
-    },
-    
-    // Booking/Borrowing info
-    maxBorrowDuration: { type: Number }, // in days for books/equipment, hours for facilities
-    requiresApproval: { type: Boolean, default: false },
-    currentBorrower: { type: String },
-    dueDate: { type: Date },
-    totalBorrows: { type: Number, default: 0 },
-  },
-  { timestamps: true }
-);
-
-const InternshipSchema = new Schema(
-  {
-    title: { type: String, required: true },
-    company: { type: String, required: true },
-    description: { type: String, required: true },
-    requirements: [{ type: String }],
-    responsibilities: [{ type: String }],
-    skills: [{ type: String }],
-    location: { type: String, required: true },
-    locationType: { type: String, enum: ['onsite', 'remote', 'hybrid'], required: true },
-    duration: { type: String, required: true },
-    stipend: { type: String },
-    applicationDeadline: { type: Date, required: true },
-    startDate: { type: Date },
-    endDate: { type: Date },
-    contactEmail: { type: String, required: true },
-    contactPhone: { type: String },
-    companyWebsite: { type: String },
-    applicationUrl: { type: String },
-    status: { type: String, enum: ['active', 'closed', 'draft'], default: 'draft' },
-    category: { type: String, enum: ['engineering', 'design', 'marketing', 'sales', 'hr', 'finance', 'other'] },
-    experienceLevel: { type: String, enum: ['fresher', 'experienced'], default: 'fresher' },
-    isRemote: { type: Boolean, default: false },
-    applicationCount: { type: Number, default: 0 },
-  },
-  { timestamps: true }
-);
-
-const BookingSchema = new Schema(
-  {
-    resourceId: { type: Schema.Types.ObjectId, ref: 'Resource', required: true },
-    userId: { type: Schema.Types.ObjectId, required: true }, // Can be student or teacher
-    userType: { type: String, enum: ['student', 'teacher'], required: true },
-    userName: { type: String, required: true },
-    userEmail: { type: String, required: true },
-    userPhone: { type: String },
-    purpose: { type: String, required: true },
-    startDate: { type: Date, required: true },
-    endDate: { type: Date, required: true },
-    startTime: { type: String }, // For hourly bookings
-    endTime: { type: String }, // For hourly bookings
-    status: { type: String, enum: ['pending', 'approved', 'rejected', 'active', 'completed', 'cancelled'], default: 'pending' },
-    approvedBy: { type: String },
-    approvedAt: { type: Date },
-    rejectedReason: { type: String },
-    totalFee: { type: Number, default: 0 },
-    isPaid: { type: Boolean, default: false },
-    notes: { type: String },
-    returnCondition: { type: String, enum: ['excellent', 'good', 'fair', 'damaged'] },
-    returnNotes: { type: String },
-    returnedAt: { type: Date },
-  },
-  { timestamps: true }
-);
-
-// Indexes for better performance
-EventSchema.index({ startDate: 1, status: 1 });
-EventSchema.index({ eventType: 1 });
-ResourceSchema.index({ category: 1, type: 1, location: 1 });
-ResourceSchema.index({ status: 1, isAvailable: 1 });
-ResourceSchema.index({ name: 'text', description: 'text', location: 'text' });
-ResourceSchema.index({ bookingType: 1, requiresApproval: 1 });
-BookingSchema.index({ resourceId: 1, startDate: 1, endDate: 1 });
-BookingSchema.index({ userId: 1, status: 1 });
-InternshipSchema.index({ applicationDeadline: 1, status: 1 });
-InternshipSchema.index({ company: 1, category: 1 });
-
 export const StudentModel = models.Student || model("Student", StudentSchema);
 export const TeacherModel = models.Teacher || model("Teacher", TeacherSchema);
 export const CanteenModel = models.Canteen || model("Canteen", CanteenSchema);
 export const TimetableModel = models.Timetable || model("Timetable", TimetableSchema);
 export const AttendanceModel = models.Attendance || model("Attendance", AttendanceSchema);
 export const SectionModel = models.Section || model("Section", SectionSchema);
-export const EventModel = models.Event || model("Event", EventSchema);
-export const ResourceModel = models.Resource || model("Resource", ResourceSchema);
-export const BookingModel = models.Booking || model("Booking", BookingSchema);
-export const InternshipModel = models.Internship || model("Internship", InternshipSchema);
+export const MenuItemModel = models.MenuItem || model("MenuItem", MenuItemSchema);

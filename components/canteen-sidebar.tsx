@@ -26,8 +26,9 @@ export function CanteenSidebar({ className = "" }: SidebarProps) {
 
   const navItems = [
     { href: "/canteen/dashboard", icon: BarChart3, label: "Dashboard" },
-    { href: "/canteen/stocks", icon: Package, label: "Stock Management" },
+    { href: "/canteen/menu", icon: UtensilsCrossed, label: "Menu Management" },
     { href: "/canteen/orders", icon: ClipboardList, label: "Order Management" },
+    { href: "/canteen/stocks", icon: Package, label: "Stock Management" },
   ]
 
   return (
