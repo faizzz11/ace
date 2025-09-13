@@ -50,9 +50,13 @@ export async function GET(request: NextRequest) {
     // Build query for attendance records
     let query: any = {
       studentId,
-      teacherId: enrollment.classroomId.teacherId,
       className: enrollment.classroomId.title,
     };
+
+    // Only add teacherId if it exists (to avoid undefined in query)
+    if (enrollment.classroomId.teacherId) {
+      query.teacherId = enrollment.classroomId.teacherId;
+    }
 
     // Add date range filter if provided
     if (startDate && endDate) {
@@ -60,13 +64,78 @@ export async function GET(request: NextRequest) {
         $gte: startDate,
         $lte: endDate,
       };
+    } else if (startDate) {
+      query.date = { $gte: startDate };
+    } else if (endDate) {
+      query.date = { $lte: endDate };
     }
+    // If no dates provided, show all attendance records
+
+    // Debug: Log the query and parameters
+    console.log("=== STUDENT ATTENDANCE DEBUG ===");
+    console.log("Query parameters:", {
+      studentId,
+      classroomId,
+      startDate,
+      endDate,
+    });
+    console.log("Enrollment found:", !!enrollment);
+    if (enrollment) {
+      console.log("Enrollment details:", {
+        classroomId: enrollment.classroomId._id,
+        classroomTitle: enrollment.classroomId.title,
+        teacherId: enrollment.classroomId.teacherId,
+        teacherName: enrollment.classroomId.teacherName,
+        rawClassroom: enrollment.classroomId,
+      });
+    }
+    console.log("Final query:", query);
+
+    // Check if there are ANY attendance records in the database
+    const totalAttendanceRecords = await AttendanceModel.countDocuments();
+    console.log(
+      "Total attendance records in database:",
+      totalAttendanceRecords
+    );
+
+    // Check records for this specific student
+    const studentRecords = await AttendanceModel.countDocuments({ studentId });
+    console.log("Total records for this student:", studentRecords);
+
+    // Show a sample of what attendance records actually look like
+    const sampleStudentRecords = await AttendanceModel.find({
+      studentId,
+    }).limit(2);
+    console.log(
+      "Sample student records structure:",
+      sampleStudentRecords.map((r) => ({
+        _id: r._id,
+        studentId: r.studentId,
+        teacherId: r.teacherId,
+        className: r.className,
+        subjectName: r.subjectName,
+        date: r.date,
+        status: r.status,
+      }))
+    );
 
     // Get attendance records
     const attendanceRecords = await AttendanceModel.find(query).sort({
       date: -1,
       createdAt: -1,
     });
+
+    console.log("Attendance records found:", attendanceRecords.length);
+    console.log(
+      "Sample records:",
+      attendanceRecords.slice(0, 3).map((r) => ({
+        date: r.date,
+        status: r.status,
+        subjectName: r.subjectName,
+        studentId: r.studentId,
+      }))
+    );
+    console.log("=== END ATTENDANCE DEBUG ===");
 
     // Calculate attendance statistics
     const totalClasses = attendanceRecords.length;

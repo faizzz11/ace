@@ -86,6 +86,14 @@ export default function StudentAttendancePage() {
     if (!currentUser) return
 
     setLoading(true)
+
+    console.log("=== FRONTEND ATTENDANCE DEBUG ===");
+    console.log("Current user:", currentUser._id || currentUser.id);
+    console.log("Selected classroom:", classroomId);
+    console.log("Start date:", startDate);
+    console.log("End date:", endDate);
+    console.log("Date filters applied:", !!(startDate || endDate));
+
     try {
       const params = new URLSearchParams({
         studentId: currentUser._id || currentUser.id,
@@ -95,10 +103,16 @@ export default function StudentAttendancePage() {
       if (startDate) params.append('startDate', startDate)
       if (endDate) params.append('endDate', endDate)
 
+      console.log("API URL:", `/api/student/attendance?${params}`);
       const response = await fetch(`/api/student/attendance?${params}`)
 
       if (response.ok) {
         const data = await response.json()
+        console.log("API Response data:", data);
+        console.log("Attendance records received:", data.attendanceRecords?.length || 0);
+        console.log("Statistics:", data.statistics);
+        console.log("=== END FRONTEND DEBUG ===");
+
         setAttendanceRecords(data.attendanceRecords || [])
         setEnrollments(data.enrollments || [])
         setStatistics(data.statistics || null)
@@ -168,7 +182,7 @@ export default function StudentAttendancePage() {
                 </Link>
                 <div>
                   <h1 className="text-3xl font-bold text-white mb-2">My Attendance</h1>
-                  <p className="text-zinc-400">View your attendance records and statistics</p>
+                  <p className="text-zinc-400">View all your attendance records and statistics. Use date filters for specific periods.</p>
                 </div>
               </div>
               <UserMenu />
@@ -208,44 +222,48 @@ export default function StudentAttendancePage() {
 
                 <Card className="bg-zinc-900/50 border-zinc-800">
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-white text-sm">Start Date</CardTitle>
+                    <CardTitle className="text-white text-sm">Start Date (Optional)</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <Input
                       type="date"
                       value={startDate}
                       onChange={(e) => setStartDate(e.target.value)}
+                      placeholder="Filter from date"
                       className="bg-zinc-800/50 border-zinc-700 text-white"
                     />
+                    <p className="text-xs text-zinc-500 mt-1">Leave empty to show all records</p>
                   </CardContent>
                 </Card>
 
                 <Card className="bg-zinc-900/50 border-zinc-800">
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-white text-sm">End Date</CardTitle>
+                    <CardTitle className="text-white text-sm">End Date (Optional)</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <Input
                       type="date"
                       value={endDate}
                       onChange={(e) => setEndDate(e.target.value)}
+                      placeholder="Filter to date"
                       className="bg-zinc-800/50 border-zinc-700 text-white"
                     />
+                    <p className="text-xs text-zinc-500 mt-1">Leave empty to show all records</p>
                   </CardContent>
                 </Card>
               </div>
 
-              {/* Apply Filter Button */}
-              {(startDate || endDate) && (
-                <div className="flex gap-4 mb-6">
-                  <Button
-                    onClick={() => fetchAttendanceData(selectedClassroom)}
-                    disabled={loading}
-                    className="bg-[#e78a53] hover:bg-[#e78a53]/90 text-white"
-                  >
-                    <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-                    Apply Filter
-                  </Button>
+              {/* Filter Controls */}
+              <div className="flex gap-4 mb-6">
+                <Button
+                  onClick={() => fetchAttendanceData(selectedClassroom)}
+                  disabled={loading}
+                  className="bg-[#e78a53] hover:bg-[#e78a53]/90 text-white"
+                >
+                  <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                  {(startDate || endDate) ? 'Apply Filter' : 'Refresh'}
+                </Button>
+                {(startDate || endDate) && (
                   <Button
                     variant="outline"
                     onClick={() => {
@@ -255,10 +273,10 @@ export default function StudentAttendancePage() {
                     }}
                     className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
                   >
-                    Clear Filter
+                    Clear Filter (Show All)
                   </Button>
-                </div>
-              )}
+                )}
+              </div>
 
               {/* Statistics */}
               {statistics && selectedClassroom && (
@@ -349,9 +367,17 @@ export default function StudentAttendancePage() {
               ) : (
                 <Card className="bg-zinc-900/50 border-zinc-800">
                   <CardHeader>
-                    <CardTitle className="text-white flex items-center gap-2">
-                      <UserCheck className="h-5 w-5 text-[#e78a53]" />
-                      Attendance Records - {classroom?.title}
+                    <CardTitle className="text-white flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <UserCheck className="h-5 w-5 text-[#e78a53]" />
+                        Attendance Records - {classroom?.title}
+                      </div>
+                      <span className="text-sm font-normal text-zinc-400">
+                        {(startDate || endDate) ?
+                          `Filtered${startDate ? ` from ${startDate}` : ''}${endDate ? ` to ${endDate}` : ''}` :
+                          'All Time'
+                        }
+                      </span>
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
