@@ -1,362 +1,423 @@
 "use client"
 
+import { useState, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
+import Link from "next/link"
+import { StudentSidebar } from "@/components/student-sidebar"
+import { UserMenu } from "@/components/user-menu"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { StudentSidebar } from "@/components/student-sidebar"
+import { toast } from "@/hooks/use-toast"
 import {
   UserCheck,
   Calendar,
-  Clock,
+  ArrowLeft,
   TrendingUp,
-  AlertTriangle,
+  Clock,
   CheckCircle,
   XCircle,
-  Filter,
-  Download
+  AlertCircle,
+  RefreshCw
 } from "lucide-react"
 
+interface AttendanceRecord {
+  _id: string
+  date: string
+  status: 'present' | 'absent' | 'late'
+  subjectName: string
+  timeSlot?: string
+  remarks?: string
+  createdAt: string
+}
+
+interface Classroom {
+  _id: string
+  title: string
+  subject: string
+  teacherName: string
+}
+
+interface Statistics {
+  totalClasses: number
+  presentCount: number
+  lateCount: number
+  absentCount: number
+  attendancePercentage: number
+}
+
 export default function StudentAttendancePage() {
-  const subjects = [
-    {
-      id: 1,
-      name: "Data Structures",
-      code: "CS201",
-      totalClasses: 45,
-      attendedClasses: 42,
-      percentage: 93.3,
-      lastClass: "2024-01-15",
-      status: "good"
-    },
-    {
-      id: 2,
-      name: "Database Management",
-      code: "CS301",
-      totalClasses: 38,
-      attendedClasses: 28,
-      percentage: 73.7,
-      lastClass: "2024-01-14",
-      status: "warning"
-    },
-    {
-      id: 3,
-      name: "Web Development",
-      code: "CS305",
-      totalClasses: 32,
-      attendedClasses: 30,
-      percentage: 93.8,
-      lastClass: "2024-01-16",
-      status: "good"
-    },
-    {
-      id: 4,
-      name: "Operating Systems",
-      code: "CS401",
-      totalClasses: 40,
-      attendedClasses: 35,
-      percentage: 87.5,
-      lastClass: "2024-01-15",
-      status: "good"
-    },
-    {
-      id: 5,
-      name: "Computer Networks",
-      code: "CS402",
-      totalClasses: 35,
-      attendedClasses: 24,
-      percentage: 68.6,
-      lastClass: "2024-01-13",
-      status: "critical"
-    },
-    {
-      id: 6,
-      name: "Software Engineering",
-      code: "CS501",
-      totalClasses: 42,
-      attendedClasses: 38,
-      percentage: 90.5,
-      lastClass: "2024-01-16",
-      status: "good"
-    }
-  ]
+  const searchParams = useSearchParams()
+  const classroomParam = searchParams.get('classroom')
 
-  const recentAttendance = [
-    { date: "2024-01-16", subject: "Web Development", status: "present", time: "10:00 AM" },
-    { date: "2024-01-16", subject: "Software Engineering", status: "present", time: "02:00 PM" },
-    { date: "2024-01-15", subject: "Data Structures", status: "present", time: "09:00 AM" },
-    { date: "2024-01-15", subject: "Operating Systems", status: "present", time: "11:00 AM" },
-    { date: "2024-01-14", subject: "Database Management", status: "absent", time: "01:00 PM" },
-    { date: "2024-01-13", subject: "Computer Networks", status: "absent", time: "03:00 PM" },
-    { date: "2024-01-12", subject: "Data Structures", status: "present", time: "09:00 AM" },
-    { date: "2024-01-12", subject: "Web Development", status: "present", time: "10:00 AM" }
-  ]
+  const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([])
+  const [enrollments, setEnrollments] = useState<any[]>([])
+  const [selectedClassroom, setSelectedClassroom] = useState<string>(classroomParam || "")
+  const [classroom, setClassroom] = useState<Classroom | null>(null)
+  const [statistics, setStatistics] = useState<Statistics | null>(null)
+  const [startDate, setStartDate] = useState("")
+  const [endDate, setEndDate] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [initialLoading, setInitialLoading] = useState(true)
+  const [currentUser, setCurrentUser] = useState<any>(null)
 
-  const getStatusColor = (status: string) => {
-    const colors = {
-      good: "bg-[#e78a53]/10 border-[#e78a53]/30 text-[#e78a53]",
-      warning: "bg-orange-400/10 border-orange-400/30 text-orange-400",
-      critical: "bg-red-500/10 border-red-500/30 text-red-400"
+  useEffect(() => {
+    try {
+      const user = localStorage.getItem('currentUser')
+      if (user) {
+        const userData = JSON.parse(user)
+        setCurrentUser(userData)
+      }
+    } catch (error) {
+      console.error('Error loading user data:', error)
     }
-    return colors[status as keyof typeof colors] || "bg-zinc-500/10 border-zinc-500/30 text-zinc-400"
+  }, [])
+
+  useEffect(() => {
+    if (currentUser) {
+      fetchAttendanceData(selectedClassroom)
+    }
+  }, [currentUser])
+
+  const fetchAttendanceData = async (classroomId?: string) => {
+    if (!currentUser) return
+
+    setLoading(true)
+
+    console.log("=== FRONTEND ATTENDANCE DEBUG ===");
+    console.log("Current user:", currentUser._id || currentUser.id);
+    console.log("Selected classroom:", classroomId);
+    console.log("Start date:", startDate);
+    console.log("End date:", endDate);
+    console.log("Date filters applied:", !!(startDate || endDate));
+
+    try {
+      const params = new URLSearchParams({
+        studentId: currentUser._id || currentUser.id,
+      })
+
+      if (classroomId) params.append('classroomId', classroomId)
+      if (startDate) params.append('startDate', startDate)
+      if (endDate) params.append('endDate', endDate)
+
+      console.log("API URL:", `/api/student/attendance?${params}`);
+      const response = await fetch(`/api/student/attendance?${params}`)
+
+      if (response.ok) {
+        const data = await response.json()
+        console.log("API Response data:", data);
+        console.log("Attendance records received:", data.attendanceRecords?.length || 0);
+        console.log("Statistics:", data.statistics);
+        console.log("=== END FRONTEND DEBUG ===");
+
+        setAttendanceRecords(data.attendanceRecords || [])
+        setEnrollments(data.enrollments || [])
+        setStatistics(data.statistics || null)
+        setClassroom(data.classroom || null)
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to fetch attendance data",
+          variant: "destructive"
+        })
+      }
+    } catch (error) {
+      console.error('Error fetching attendance:', error)
+      toast({
+        title: "Error",
+        description: "Network error. Please try again.",
+        variant: "destructive"
+      })
+    } finally {
+      setLoading(false)
+      setInitialLoading(false)
+    }
+  }
+
+  const handleClassroomChange = (classroomId: string) => {
+    setSelectedClassroom(classroomId)
+    fetchAttendanceData(classroomId)
   }
 
   const getStatusIcon = (status: string) => {
-    const icons = {
-      good: <CheckCircle className="h-4 w-4" />,
-      warning: <AlertTriangle className="h-4 w-4" />,
-      critical: <XCircle className="h-4 w-4" />
+    switch (status) {
+      case 'present':
+        return <CheckCircle className="h-4 w-4 text-green-400" />
+      case 'late':
+        return <AlertCircle className="h-4 w-4 text-yellow-400" />
+      case 'absent':
+      default:
+        return <XCircle className="h-4 w-4 text-red-400" />
     }
-    return icons[status as keyof typeof icons] || <AlertTriangle className="h-4 w-4" />
   }
 
-  const overallAttendance = subjects.reduce((acc, subject) => {
-    acc.total += subject.totalClasses
-    acc.attended += subject.attendedClasses
-    return acc
-  }, { total: 0, attended: 0 })
-
-  const overallPercentage = (overallAttendance.attended / overallAttendance.total * 100).toFixed(1)
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'present':
+        return 'bg-green-500/10 text-green-400 border-green-500/30'
+      case 'late':
+        return 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30'
+      case 'absent':
+      default:
+        return 'bg-red-500/10 text-red-400 border-red-500/30'
+    }
+  }
 
   return (
     <div className="min-h-screen bg-black flex">
       <StudentSidebar />
-      
+
       <main className="flex-1 overflow-auto">
         <header className="bg-zinc-900/30 backdrop-blur-sm border-b border-zinc-800 sticky top-0 z-10">
           <div className="px-8 py-6">
             <div className="flex justify-between items-center">
-              <div>
-                <h1 className="text-3xl font-bold text-white mb-2">Attendance Tracker</h1>
-                <p className="text-zinc-400">Monitor your class attendance and performance</p>
+              <div className="flex items-center gap-4">
+                <Link href="/student/classroom">
+                  <Button variant="ghost" size="icon" className="text-zinc-400 hover:text-white">
+                    <ArrowLeft className="h-5 w-5" />
+                  </Button>
+                </Link>
+                <div>
+                  <h1 className="text-3xl font-bold text-white mb-2">My Attendance</h1>
+                  <p className="text-zinc-400">View all your attendance records and statistics. Use date filters for specific periods.</p>
+                </div>
               </div>
-              <div className="flex gap-4">
-                <Button variant="outline" className="border-zinc-700 text-zinc-400 hover:text-white">
-                  <Filter className="h-4 w-4 mr-2" />
-                  Filter
-                </Button>
-                <Button className="bg-[#e78a53] hover:bg-[#e78a53]/90">
-                  <Download className="h-4 w-4 mr-2" />
-                  Export Report
-                </Button>
-              </div>
+              <UserMenu />
             </div>
           </div>
         </header>
 
         <div className="p-8">
-          {/* Overall Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <Card className="bg-zinc-900/50 border-zinc-800">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3">
-                  <div className="p-3 bg-[#e78a53]/10 rounded-lg">
-                    <TrendingUp className="h-6 w-6 text-[#e78a53]" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-white">{overallPercentage}%</p>
-                    <p className="text-zinc-400 text-sm">Overall Attendance</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          {initialLoading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#e78a53] mx-auto"></div>
+              <p className="text-zinc-400 mt-2">Loading...</p>
+            </div>
+          ) : (
+            <>
+              {/* Controls */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <Card className="bg-zinc-900/50 border-zinc-800">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-white text-sm">Select Classroom</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Select value={selectedClassroom} onValueChange={handleClassroomChange}>
+                      <SelectTrigger className="bg-zinc-800/50 border-zinc-700 text-white">
+                        <SelectValue placeholder="Choose a classroom" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-zinc-800 border-zinc-700">
+                        {enrollments.map((enrollment) => (
+                          <SelectItem key={enrollment.classroomId._id} value={enrollment.classroomId._id} className="text-white hover:bg-zinc-700">
+                            {enrollment.classroomId.title} ({enrollment.classroomId.subject})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </CardContent>
+                </Card>
 
-            <Card className="bg-zinc-900/50 border-zinc-800">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3">
-                  <div className="p-3 bg-[#e78a53]/10 rounded-lg">
-                    <CheckCircle className="h-6 w-6 text-[#e78a53]" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-white">{overallAttendance.attended}</p>
-                    <p className="text-zinc-400 text-sm">Classes Attended</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                <Card className="bg-zinc-900/50 border-zinc-800">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-white text-sm">Start Date (Optional)</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Input
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      placeholder="Filter from date"
+                      className="bg-zinc-800/50 border-zinc-700 text-white"
+                    />
+                    <p className="text-xs text-zinc-500 mt-1">Leave empty to show all records</p>
+                  </CardContent>
+                </Card>
 
-            <Card className="bg-zinc-900/50 border-zinc-800">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3">
-                  <div className="p-3 bg-[#e78a53]/10 rounded-lg">
-                    <Calendar className="h-6 w-6 text-[#e78a53]" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-white">{overallAttendance.total}</p>
-                    <p className="text-zinc-400 text-sm">Total Classes</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-zinc-900/50 border-zinc-800">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3">
-                  <div className="p-3 bg-red-500/10 rounded-lg">
-                    <AlertTriangle className="h-6 w-6 text-red-400" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-white">
-                      {subjects.filter(s => s.status === 'warning' || s.status === 'critical').length}
-                    </p>
-                    <p className="text-zinc-400 text-sm">Subjects at Risk</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Subject-wise Attendance */}
-          <Card className="bg-zinc-900/50 border-zinc-800 mb-8">
-            <CardHeader>
-              <CardTitle className="text-white">Subject-wise Attendance</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {subjects.map((subject) => (
-                  <div key={subject.id} className="p-4 bg-zinc-800/30 rounded-lg">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <Badge className={getStatusColor(subject.status)}>
-                          {getStatusIcon(subject.status)}
-                          <span className="ml-1 capitalize">{subject.status}</span>
-                        </Badge>
-                        <div>
-                          <h3 className="text-white font-semibold">{subject.name}</h3>
-                          <p className="text-zinc-400 text-sm">{subject.code}</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-2xl font-bold text-white">{subject.percentage}%</p>
-                        <p className="text-zinc-400 text-sm">{subject.attendedClasses}/{subject.totalClasses} classes</p>
-                      </div>
-                    </div>
-
-                    {/* Progress Bar */}
-                    <div className="w-full bg-zinc-700 rounded-full h-2 mb-2">
-                      <div 
-                        className={`h-2 rounded-full ${
-                          subject.percentage >= 75 
-                            ? 'bg-[#e78a53]' 
-                            : subject.percentage >= 65 
-                            ? 'bg-orange-400' 
-                            : 'bg-red-500'
-                        }`}
-                        style={{ width: `${subject.percentage}%` }}
-                      ></div>
-                    </div>
-
-                    <div className="flex justify-between text-sm">
-                      <span className="text-zinc-400">Last attended: {subject.lastClass}</span>
-                      <span className="text-zinc-400">
-                        Required: {subject.percentage < 75 ? `${Math.ceil((subject.totalClasses * 0.75 - subject.attendedClasses) / 0.25)} more classes` : 'Met requirement'}
-                      </span>
-                    </div>
-                  </div>
-                ))}
+                <Card className="bg-zinc-900/50 border-zinc-800">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-white text-sm">End Date (Optional)</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Input
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      placeholder="Filter to date"
+                      className="bg-zinc-800/50 border-zinc-700 text-white"
+                    />
+                    <p className="text-xs text-zinc-500 mt-1">Leave empty to show all records</p>
+                  </CardContent>
+                </Card>
               </div>
-            </CardContent>
-          </Card>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Recent Attendance */}
-            <Card className="bg-zinc-900/50 border-zinc-800">
-              <CardHeader>
-                <CardTitle className="text-white">Recent Attendance</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {recentAttendance.map((record, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-zinc-800/30 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-lg ${
-                          record.status === 'present' 
-                            ? 'bg-[#e78a53]/10' 
-                            : 'bg-red-500/10'
-                        }`}>
-                          {record.status === 'present' ? (
-                            <CheckCircle className="h-4 w-4 text-[#e78a53]" />
-                          ) : (
-                            <XCircle className="h-4 w-4 text-red-400" />
-                          )}
+              {/* Filter Controls */}
+              <div className="flex gap-4 mb-6">
+                <Button
+                  onClick={() => fetchAttendanceData(selectedClassroom)}
+                  disabled={loading}
+                  className="bg-[#e78a53] hover:bg-[#e78a53]/90 text-white"
+                >
+                  <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                  {(startDate || endDate) ? 'Apply Filter' : 'Refresh'}
+                </Button>
+                {(startDate || endDate) && (
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setStartDate("")
+                      setEndDate("")
+                      fetchAttendanceData(selectedClassroom)
+                    }}
+                    className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                  >
+                    Clear Filter (Show All)
+                  </Button>
+                )}
+              </div>
+
+              {/* Statistics */}
+              {statistics && selectedClassroom && (
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                  <Card className="bg-zinc-900/50 border-zinc-800">
+                    <CardContent className="p-6">
+                      <div className="flex items-center gap-4">
+                        <div className="p-3 bg-blue-500/10 rounded-lg">
+                          <Clock className="h-6 w-6 text-blue-400" />
                         </div>
                         <div>
-                          <p className="text-white font-medium">{record.subject}</p>
-                          <p className="text-zinc-400 text-sm">{record.date} • {record.time}</p>
+                          <p className="text-2xl font-bold text-white">{statistics.totalClasses}</p>
+                          <p className="text-zinc-400 text-sm">Total Classes</p>
                         </div>
                       </div>
-                      <Badge variant={record.status === 'present' ? 'default' : 'destructive'}>
-                        {record.status}
-                      </Badge>
-                    </div>
-                  ))}
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-zinc-900/50 border-zinc-800">
+                    <CardContent className="p-6">
+                      <div className="flex items-center gap-4">
+                        <div className="p-3 bg-green-500/10 rounded-lg">
+                          <CheckCircle className="h-6 w-6 text-green-400" />
+                        </div>
+                        <div>
+                          <p className="text-2xl font-bold text-white">{statistics.presentCount}</p>
+                          <p className="text-zinc-400 text-sm">Present</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-zinc-900/50 border-zinc-800">
+                    <CardContent className="p-6">
+                      <div className="flex items-center gap-4">
+                        <div className="p-3 bg-red-500/10 rounded-lg">
+                          <XCircle className="h-6 w-6 text-red-400" />
+                        </div>
+                        <div>
+                          <p className="text-2xl font-bold text-white">{statistics.absentCount}</p>
+                          <p className="text-zinc-400 text-sm">Absent</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-zinc-900/50 border-zinc-800">
+                    <CardContent className="p-6">
+                      <div className="flex items-center gap-4">
+                        <div className="p-3 bg-[#e78a53]/10 rounded-lg">
+                          <TrendingUp className="h-6 w-6 text-[#e78a53]" />
+                        </div>
+                        <div>
+                          <p className="text-2xl font-bold text-white">{statistics.attendancePercentage}%</p>
+                          <p className="text-zinc-400 text-sm">Attendance</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
-              </CardContent>
-            </Card>
+              )}
 
-            {/* Attendance Insights */}
-            <Card className="bg-zinc-900/50 border-zinc-800">
-              <CardHeader>
-                <CardTitle className="text-white">Attendance Insights</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  {/* Weekly Trend */}
-                  <div>
-                    <h4 className="text-zinc-300 font-medium mb-3">This Week's Performance</h4>
-                    <div className="flex justify-between items-center p-3 bg-zinc-800/30 rounded-lg">
-                      <span className="text-zinc-400">Classes This Week</span>
-                      <span className="text-white font-semibold">8/10 attended</span>
+              {/* Attendance Records */}
+              {!selectedClassroom ? (
+                <Card className="bg-zinc-900/50 border-zinc-800">
+                  <CardContent className="p-12">
+                    <div className="text-center">
+                      <UserCheck className="h-16 w-16 text-zinc-600 mx-auto mb-4" />
+                      <h3 className="text-xl font-semibold text-white mb-2">Select a Classroom</h3>
+                      <p className="text-zinc-400">
+                        Choose a classroom from the dropdown above to view your attendance records.
+                      </p>
                     </div>
-                  </div>
-
-                  {/* Recommendations */}
-                  <div>
-                    <h4 className="text-zinc-300 font-medium mb-3">Recommendations</h4>
+                  </CardContent>
+                </Card>
+              ) : attendanceRecords.length === 0 ? (
+                <Card className="bg-zinc-900/50 border-zinc-800">
+                  <CardContent className="p-12">
+                    <div className="text-center">
+                      <Calendar className="h-16 w-16 text-zinc-600 mx-auto mb-4" />
+                      <h3 className="text-xl font-semibold text-white mb-2">No Attendance Records</h3>
+                      <p className="text-zinc-400">
+                        No attendance has been taken for this classroom yet.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card className="bg-zinc-900/50 border-zinc-800">
+                  <CardHeader>
+                    <CardTitle className="text-white flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <UserCheck className="h-5 w-5 text-[#e78a53]" />
+                        Attendance Records - {classroom?.title}
+                      </div>
+                      <span className="text-sm font-normal text-zinc-400">
+                        {(startDate || endDate) ?
+                          `Filtered${startDate ? ` from ${startDate}` : ''}${endDate ? ` to ${endDate}` : ''}` :
+                          'All Time'
+                        }
+                      </span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
                     <div className="space-y-3">
-                      <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
-                        <div className="flex items-start gap-3">
-                          <AlertTriangle className="h-5 w-5 text-yellow-400 mt-0.5" />
-                          <div>
-                            <p className="text-yellow-400 font-medium">Attention Required</p>
-                            <p className="text-zinc-300 text-sm">Computer Networks attendance is below 75%. Consider attending the next 3 classes.</p>
+                      {attendanceRecords.map((record) => (
+                        <div key={record._id} className="flex items-center justify-between p-4 bg-zinc-800/30 rounded-lg border border-zinc-700/50">
+                          <div className="flex items-center gap-4">
+                            <div className="p-2 bg-zinc-800/50 rounded-lg">
+                              {getStatusIcon(record.status)}
+                            </div>
+                            <div>
+                              <h4 className="text-white font-medium">{record.subjectName}</h4>
+                              <p className="text-zinc-400 text-sm">
+                                {new Date(record.date).toLocaleDateString('en-US', {
+                                  weekday: 'long',
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric'
+                                })}
+                              </p>
+                              {record.timeSlot && (
+                                <p className="text-zinc-500 text-xs">Time: {record.timeSlot}</p>
+                              )}
+                              {record.remarks && (
+                                <p className="text-zinc-500 text-xs italic mt-1">Note: {record.remarks}</p>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      </div>
 
-                      <div className="p-3 bg-[#e78a53]/10 border border-[#e78a53]/30 rounded-lg">
-                        <div className="flex items-start gap-3">
-                          <CheckCircle className="h-5 w-5 text-[#e78a53] mt-0.5" />
-                          <div>
-                            <p className="text-[#e78a53] font-medium">Great Job!</p>
-                            <p className="text-zinc-300 text-sm">Your Web Development attendance is excellent. Keep it up!</p>
-                          </div>
+                          <Badge className={getStatusColor(record.status)}>
+                            {record.status.charAt(0).toUpperCase() + record.status.slice(1)}
+                          </Badge>
                         </div>
-                      </div>
+                      ))}
                     </div>
-                  </div>
-
-                  {/* Monthly Summary */}
-                  <div>
-                    <h4 className="text-zinc-300 font-medium mb-3">Monthly Summary</h4>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-zinc-400">January 2024</span>
-                        <span className="text-white font-semibold">85.2%</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-zinc-400">December 2023</span>
-                        <span className="text-white font-semibold">88.5%</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-zinc-400">November 2023</span>
-                        <span className="text-white font-semibold">91.3%</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                  </CardContent>
+                </Card>
+              )}
+            </>
+          )}
         </div>
       </main>
     </div>
