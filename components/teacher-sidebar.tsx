@@ -15,8 +15,9 @@ export function TeacherSidebar({ className = "" }: SidebarProps) {
 
     const navItems = [
         { href: "/teacher/dashboard", icon: Users, label: "Dashboard" },
-        { href: "/teacher/timetable", icon: Calendar, label: "Timetable" },
-        { href: "/teacher/attendance-management", icon: UserCheck, label: "Attendance" },
+        // { href: "/teacher/timetable", icon: Calendar, label: "Timetable" },
+        { href: "/teacher/classroom", icon: UserCheck, label: "Classroom" },
+        // { href: "/teacher/attendance-management", icon: UserCheck, label: "Attendance" },
         { href: "/teacher/food", icon: UtensilsCrossed, label: "Food" },
     ]
 
@@ -36,8 +37,8 @@ export function TeacherSidebar({ className = "" }: SidebarProps) {
                     return (
                         <Link key={item.href} href={item.href}>
                             <div className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${active
-                                    ? 'text-white bg-[#e78a53]/10 border-l-2 border-[#e78a53]'
-                                    : 'text-zinc-400 hover:text-white hover:bg-zinc-800/50'
+                                ? 'text-white bg-[#e78a53]/10 border-l-2 border-[#e78a53]'
+                                : 'text-zinc-400 hover:text-white hover:bg-zinc-800/50'
                                 }`}>
                                 <Icon className={`h-5 w-5 ${active ? 'text-[#e78a53]' : ''}`} />
                                 <span>{item.label}</span>
