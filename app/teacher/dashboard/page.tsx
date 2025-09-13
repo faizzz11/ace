@@ -377,7 +377,7 @@ export default function TeacherDashboardPage() {
                                     <CardTitle className="text-white text-lg">Quick Actions</CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-3">
-                                    <Link href="/teacher/attendance-management" className="block">
+                                    <Link href="/teacher/classroom/attendance" className="block">
                                         <Button className="w-full bg-zinc-800 hover:bg-zinc-700 text-white justify-start">
                                             <UserCheck className="h-4 w-4 mr-2" />
                                             Take Attendance
