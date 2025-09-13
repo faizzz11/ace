@@ -23,8 +23,8 @@ export function NewReleasePromo() {
 
           <div className="relative z-10">
             <div className="mt-8 text-center">
-              <h2 className="text-4xl font-bold text-white mb-6">Build. Customize. Deploy with Reinkei.</h2>
-              <p className="text-white/60 mb-8">A unified campus platform you’ll keep coming back to.</p>
+              <h2 className="text-4xl font-bold text-white mb-6">Learn. Manage. Connect with Reinkei.</h2>
+              <p className="text-white/60 mb-8">The complete campus management solution for modern education.</p>
               <svg
                 width="100"
                 height="50"
@@ -61,7 +61,7 @@ export function NewReleasePromo() {
                           <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path>
                           <path d="M2 12h20"></path>
                         </svg>
-                        Get started with Reinkei
+                        Join Reinkei Today
                       </p>
                     </div>
                     <div className="border-border flex size-[26px] items-center justify-center rounded-full border-2 transition-all ease-in-out group-hover:ml-2">

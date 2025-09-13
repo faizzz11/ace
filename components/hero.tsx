@@ -51,15 +51,15 @@ export default function Hero() {
 
   const cards = [
     {
-      title: "V0 Compatible",
-      description: "Edit and customize visually, instantly.",
+      title: "Smart Classroom Management",
+      description: "Create, join, and manage classrooms effortlessly.",
       icon: <CloudLightning className="h-full w-full" />,
       variant: "rose",
       showGridLines: true,
     },
     {
-      title: "Animated Out of Box",
-      description: "No setup and  smooth UI interactions.",
+      title: "Integrated Campus Features",
+      description: "Attendance, schedules, materials, and canteen ordering.",
       icon: <Sparkles className="h-full w-full" />,
       variant: "rose",
       showGridLines: true,
@@ -70,18 +70,18 @@ export default function Hero() {
     {
       color: "rose",
       icon: "Blocks",
-      label: "Command",
+      label: "Students",
       canvasProps: { gap: 3, speed: 80, colors: "#fff, #fda4af, #e11d48" },
-      number: 100,
-      desc: "Components available",
+      number: 1000,
+      desc: "Active learners",
     },
     {
       color: "rose",
       icon: "f",
-      label: "Dropper",
+      label: "Features",
       canvasProps: { gap: 3, speed: 80, colors: "#fff, #fda4af, #e11d48" },
-      number: 15,
-      desc: "Categories available",
+      number: 8,
+      desc: "Core modules",
     },
   ]
 
@@ -139,14 +139,14 @@ export default function Hero() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.75, delay: 0.2 }}
           >
-            Prebuilt UI
+            Learn. Manage. Connect
             <img
               src="/rose.webp"
               alt="Logo"
               draggable={false}
               className="mx-4 mb-2 inline-block h-12 w-12 md:h-16 md:w-16"
             />
-            blocks to ship beautiful MVPs fast.
+            with ACE - Your Complete Campus Solution.
           </motion.h1>
         </div>
         <motion.div
@@ -156,8 +156,8 @@ export default function Hero() {
           transition={{ duration: 0.75, delay: 0.3 }}
         >
           <p className="text-muted-foreground text-xl">
-            Copy-paste beautiful, responsive components without worrying about styling or animations. Build faster,
-            launch sooner.
+            Streamline your campus experience with integrated classrooms, attendance tracking, materials sharing, and more.
+            Everything you need for academic success in one platform.
           </p>
         </motion.div>
         <motion.div
@@ -166,14 +166,14 @@ export default function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.75, delay: 0.4 }}
         >
-          <Link prefetch={false} href="/docs/introduction">
+          <Link prefetch={false} href="/signup">
             <Button className="bg-gradient-to-b from-rose-500 to-rose-700 text-sm text-white shadow-[0px_2px_0px_0px_rgba(255,255,255,0.3)_inset]">
-              Get started
+              Join ACE Today
             </Button>
           </Link>
-          <Link prefetch={false} href="/about">
+          <Link prefetch={false} href="/login">
             <Button variant={"secondary"}>
-              About <MoveRight className="ml-2 h-4 w-4" />
+              Login <MoveRight className="ml-2 h-4 w-4" />
             </Button>
           </Link>
         </motion.div>
