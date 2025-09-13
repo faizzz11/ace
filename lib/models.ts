@@ -13,6 +13,7 @@ const MenuItemSchema = new Schema(
     prepTime: { type: Number, default: 15 }, // in minutes
     rating: { type: Number, default: 4.0, min: 0, max: 5 },
     isAvailable: { type: Boolean, default: true },
+    digitalMenuId: { type: String }, // For digital menu sharing
   },
   { timestamps: true }
 );
