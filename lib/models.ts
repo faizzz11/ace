@@ -525,8 +525,7 @@ InternshipApplicationSchema.index({ internshipId: 1, applicationStatus: 1 });
 ClassroomSchema.index({ teacherId: 1 });
 ClassroomSchema.index({ status: 1 });
 ClassroomSchema.index({ subject: 1 });
-ClassroomSchema.index({ classroomId: 1 });
-ClassroomSchema.index({ inviteCode: 1 });
+// Note: classroomId and inviteCode already have unique indexes from schema definition
 
 ClassroomEnrollmentSchema.index({ classroomId: 1 });
 ClassroomEnrollmentSchema.index({ studentId: 1 });
