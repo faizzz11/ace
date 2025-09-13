@@ -27,6 +27,7 @@ export function StudentSidebar({ className = "" }: SidebarProps) {
   const navItems = [
     { href: "/student/dashboard", icon: Users, label: "Dashboard" },
     { href: "/student/timetable", icon: Calendar, label: "Timetable" },
+    { href: "/student/classroom", icon: BookOpen, label: "Classroom" },
     { href: "/student/events", icon: Users, label: "Events" },
     { href: "/student/food", icon: UtensilsCrossed, label: "Food Ordering" },
     { href: "/student/resources", icon: BookOpen, label: "Resources" },
@@ -48,14 +49,13 @@ export function StudentSidebar({ className = "" }: SidebarProps) {
         {navItems.map((item) => {
           const Icon = item.icon
           const active = isActive(item.href)
-          
+
           return (
             <Link key={item.href} href={item.href}>
-              <div className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                active 
-                  ? 'text-white bg-[#e78a53]/10 border-l-2 border-[#e78a53]' 
+              <div className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${active
+                  ? 'text-white bg-[#e78a53]/10 border-l-2 border-[#e78a53]'
                   : 'text-zinc-400 hover:text-white hover:bg-zinc-800/50'
-              }`}>
+                }`}>
                 <Icon className={`h-5 w-5 ${active ? 'text-[#e78a53]' : ''}`} />
                 <span>{item.label}</span>
               </div>
