@@ -25,8 +25,10 @@ import {
     Save,
     ChevronLeft,
     ChevronRight,
-    ArrowLeft
+    ArrowLeft,
+    Sparkles
 } from "lucide-react"
+import { AIScheduleChat } from "@/components/ai-schedule-chat"
 
 interface ScheduleEntry {
     timeSlot: string
@@ -83,6 +85,8 @@ export default function TeacherSchedulePage() {
         room: "",
         notes: ""
     })
+    const [isAIDialogOpen, setIsAIDialogOpen] = useState(false)
+    const [generatedSchedule, setGeneratedSchedule] = useState<ScheduleData | null>(null)
 
     const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
     const timeSlots = [
@@ -375,6 +379,66 @@ export default function TeacherSchedulePage() {
         }
     }
 
+    const handleAIScheduleGenerated = (aiSchedule: ScheduleData) => {
+        setGeneratedSchedule(aiSchedule)
+
+        toast({
+            title: "Schedule generated!",
+            description: "Review and apply the AI-generated schedule to your timetable."
+        })
+    }
+
+    const applyGeneratedSchedule = async () => {
+        if (!generatedSchedule || !selectedClassroom) return
+
+        setLoading(true)
+        try {
+            const response = await fetch('/api/teacher/schedule', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    teacherId: currentUser._id || currentUser.id,
+                    classroomId: selectedClassroom,
+                    weekStartDate: currentWeekStart,
+                    scheduleData: generatedSchedule
+                }),
+            })
+
+            if (response.ok) {
+                const data = await response.json()
+                setSchedule(data.schedule)
+                setGeneratedSchedule(null)
+                setIsAIDialogOpen(false)
+
+                toast({
+                    title: "Schedule applied!",
+                    description: "AI-generated schedule has been saved successfully."
+                })
+            } else {
+                throw new Error('Failed to save AI-generated schedule')
+            }
+        } catch (error) {
+            console.error('Error applying AI schedule:', error)
+            toast({
+                title: "Error",
+                description: "Failed to apply AI-generated schedule. Please try again.",
+                variant: "destructive"
+            })
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const getSelectedClassroomInfo = () => {
+        const classroom = classrooms.find(c => c._id === selectedClassroom)
+        return classroom ? {
+            title: classroom.title,
+            subject: classroom.subject
+        } : undefined
+    }
+
     return (
         <div className="min-h-screen bg-black flex">
             <TeacherSidebar />
@@ -491,6 +555,16 @@ export default function TeacherSchedulePage() {
                                     >
                                         <Trash2 className="h-4 w-4 mr-2" />
                                         Clear Week
+                                    </Button>
+
+                                    <Button
+                                        variant="outline"
+                                        className="border-purple-500/30 text-purple-400 hover:bg-purple-500/10"
+                                        onClick={() => setIsAIDialogOpen(true)}
+                                        disabled={loading || !selectedClassroom}
+                                    >
+                                        <Sparkles className="h-4 w-4 mr-2" />
+                                        AI Generate
                                     </Button>
 
                                     <Button
@@ -728,6 +802,81 @@ export default function TeacherSchedulePage() {
                         </div>
                     </DialogContent>
                 </Dialog>
+
+                <AIScheduleChat
+                    isOpen={isAIDialogOpen}
+                    onClose={() => {
+                        setIsAIDialogOpen(false)
+                        setGeneratedSchedule(null)
+                    }}
+                    onScheduleGenerated={handleAIScheduleGenerated}
+                    classroomInfo={getSelectedClassroomInfo()}
+                    currentSchedule={schedule?.weeklyData}
+                />
+
+                {generatedSchedule && (
+                    <Dialog open={true} onOpenChange={() => setGeneratedSchedule(null)}>
+                        <DialogContent className="max-w-4xl max-h-[80vh] overflow-auto bg-zinc-900 border-zinc-700">
+                            <DialogHeader>
+                                <DialogTitle className="text-white flex items-center gap-2">
+                                    <Sparkles className="h-5 w-5 text-purple-500" />
+                                    Review AI Generated Schedule
+                                </DialogTitle>
+                            </DialogHeader>
+
+                            <div className="space-y-4">
+                                <p className="text-zinc-300">
+                                    Preview the AI-generated schedule below. Click "Apply Schedule" to use it.
+                                </p>
+
+                                <div className="grid grid-cols-7 gap-2">
+                                    {daysOfWeek.map(day => (
+                                        <div key={day} className="space-y-2">
+                                            <h3 className="font-semibold text-white text-center">{day}</h3>
+                                            <div className="space-y-1">
+                                                {generatedSchedule[day as keyof ScheduleData]?.map((entry, index) => (
+                                                    <div
+                                                        key={index}
+                                                        className={`p-2 rounded text-xs ${entry.type === 'class'
+                                                            ? 'bg-blue-500/20 border border-blue-500/30'
+                                                            : entry.type === 'break'
+                                                                ? 'bg-green-500/20 border border-green-500/30'
+                                                                : 'bg-orange-500/20 border border-orange-500/30'
+                                                            }`}
+                                                    >
+                                                        <div className="font-medium text-white">{entry.timeSlot}</div>
+                                                        <div className="text-zinc-300">
+                                                            {entry.type === 'class' ? entry.subject : entry.type}
+                                                        </div>
+                                                        {entry.room && (
+                                                            <div className="text-zinc-400">{entry.room}</div>
+                                                        )}
+                                                    </div>
+                                                )) || []}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div className="flex justify-end gap-2 pt-4">
+                                    <Button
+                                        variant="ghost"
+                                        onClick={() => setGeneratedSchedule(null)}
+                                    >
+                                        Cancel
+                                    </Button>
+                                    <Button
+                                        onClick={applyGeneratedSchedule}
+                                        disabled={loading}
+                                        className="bg-purple-600 hover:bg-purple-700"
+                                    >
+                                        {loading ? "Applying..." : "Apply Schedule"}
+                                    </Button>
+                                </div>
+                            </div>
+                        </DialogContent>
+                    </Dialog>
+                )}
             </main>
         </div>
     )
