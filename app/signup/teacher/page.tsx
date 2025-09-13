@@ -309,7 +309,7 @@ export default function TeacherSignupPage() {
                     type="date"
                     value={formData.dateOfBirth}
                     onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
-                    className="bg-background/50 border-border/50"
+                    className="bg-background/50 border-border/50 text-white [color-scheme:dark]"
                   />
                 </div>
                 <div className="space-y-2">
@@ -423,7 +423,7 @@ export default function TeacherSignupPage() {
                     type="date"
                     value={formData.joiningDate}
                     onChange={(e) => handleInputChange('joiningDate', e.target.value)}
-                    className="bg-background/50 border-border/50"
+                    className="bg-background/50 border-border/50 text-white [color-scheme:dark]"
                   />
                 </div>
               </div>
