@@ -8,6 +8,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -78,19 +79,6 @@ export default function LoginPage() {
           <h1 className="text-3xl font-bold text-white mb-2">Welcome back</h1>
           <p className="text-zinc-400">Sign in to your account to continue</p>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="role" className="text-white">Role</Label>
-          <select
-            id="role"
-            value={role}
-            onChange={(e) => setRole(e.target.value as any)}
-            className="w-full bg-zinc-800/50 border-zinc-700 text-white rounded-md px-3 py-2"
-          >
-            <option value="student">Student</option>
-            <option value="teacher">Teacher</option>
-            <option value="canteen">Canteen Manager</option>
-          </select>
-        </div>
 
         {/* Login Form */}
         <motion.div
@@ -128,6 +116,20 @@ export default function LoginPage() {
                 className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-[#e78a53] focus:ring-[#e78a53]/20"
                 required
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="role" className="text-white">Role</Label>
+              <Select value={role} onValueChange={(value) => setRole(value as any)}>
+                <SelectTrigger className="bg-zinc-800/50 border-zinc-700 text-white focus:border-[#e78a53] focus:ring-[#e78a53]/20">
+                  <SelectValue placeholder="Select your role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="student">Student</SelectItem>
+                  <SelectItem value="teacher">Teacher</SelectItem>
+                  <SelectItem value="canteen">Canteen Manager</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="flex items-center justify-between">
