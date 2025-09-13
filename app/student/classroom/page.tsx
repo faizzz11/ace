@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Link from "next/link"
 import { StudentSidebar } from "@/components/student-sidebar"
 import { UserMenu } from "@/components/user-menu"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -21,7 +22,8 @@ import {
     MessageSquare,
     FileText,
     CheckCircle,
-    ExternalLink
+    ExternalLink,
+    UserCheck
 } from "lucide-react"
 
 interface Classroom {
@@ -369,17 +371,38 @@ export default function StudentClassroomPage() {
                                     ) : (
                                         <div className="space-y-3">
                                             {enrolledClassrooms.map((classroom) => (
-                                                <div key={classroom._id} className="p-3 bg-zinc-800/30 rounded-lg">
-                                                    <h4 className="text-white font-medium text-sm mb-1">{classroom.title}</h4>
-                                                    <p className="text-zinc-400 text-xs mb-2">{classroom.teacherName}</p>
-                                                    <div className="flex justify-between items-center">
-                                                        <Badge className="text-xs bg-green-500/10 text-green-400 border-green-500/30">
+                                                <div key={classroom._id} className="p-4 bg-zinc-800/30 rounded-lg border border-zinc-700/50">
+                                                    <div className="flex justify-between items-start mb-3">
+                                                        <div>
+                                                            <h4 className="text-white font-medium mb-1">{classroom.title}</h4>
+                                                            <p className="text-zinc-400 text-sm">{classroom.subject}</p>
+                                                            <p className="text-zinc-500 text-xs">Teacher: {classroom.teacherName}</p>
+                                                        </div>
+                                                        <Badge className="bg-green-500/10 text-green-400 border-green-500/30">
                                                             <CheckCircle className="h-3 w-3 mr-1" />
                                                             Enrolled
                                                         </Badge>
-                                                        <Button variant="ghost" size="sm" className="h-6 px-2 text-xs text-zinc-400 hover:text-white">
-                                                            <ExternalLink className="h-3 w-3" />
-                                                        </Button>
+                                                    </div>
+
+                                                    <div className="flex gap-2">
+                                                        <Link href={`/student/attendance?classroom=${classroom._id}`}>
+                                                            <Button variant="ghost" size="sm" className="text-zinc-400 hover:text-white">
+                                                                <UserCheck className="h-3 w-3 mr-1" />
+                                                                Attendance
+                                                            </Button>
+                                                        </Link>
+                                                        <Link href={`/student/schedule?classroom=${classroom._id}`}>
+                                                            <Button variant="ghost" size="sm" className="text-zinc-400 hover:text-white">
+                                                                <Calendar className="h-3 w-3 mr-1" />
+                                                                Schedule
+                                                            </Button>
+                                                        </Link>
+                                                        <Link href={`/student/materials?classroom=${classroom._id}`}>
+                                                            <Button variant="ghost" size="sm" className="text-zinc-400 hover:text-white">
+                                                                <FileText className="h-3 w-3 mr-1" />
+                                                                Materials
+                                                            </Button>
+                                                        </Link>
                                                     </div>
                                                 </div>
                                             ))}
