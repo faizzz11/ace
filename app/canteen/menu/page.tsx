@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { MenuImageExtractor } from "@/components/menu-image-extractor"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -88,6 +89,8 @@ export default function CanteenMenuPage() {
 
   const [isLoading, setIsLoading] = useState(false)
   const [canteenId, setCanteenId] = useState<string | null>(null)
+  const [currentDigitalMenuId, setCurrentDigitalMenuId] = useState<string | null>(null)
+  const [digitalMenuLink, setDigitalMenuLink] = useState<string | null>(null)
 
   // Get canteen ID from localStorage on component mount
   useEffect(() => {
@@ -130,6 +133,47 @@ export default function CanteenMenuPage() {
       alert('Error loading menu items. Please try again.')
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleAddExtractedItem = async (item: any, digitalMenuId: string) => {
+    if (!canteenId) {
+      alert("Canteen ID not found. Please login again.")
+      return
+    }
+
+    try {
+      const itemData = {
+        canteenId: canteenId,
+        name: item.name,
+        description: `Extracted from menu image`,
+        price: item.price,
+        category: item.category || "Extracted Items",
+        image: null,
+        isVeg: true, // default
+        isSpicy: false, // default
+        prepTime: 10, // default
+        isAvailable: true,
+        digitalMenuId: digitalMenuId // Use the passed ID
+      }
+
+      const response = await fetch('/api/canteen/menu', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(itemData)
+      })
+
+      const result = await response.json()
+      
+      if (response.ok) {
+        // Refresh menu items
+        await fetchMenuItems()
+      } else {
+        alert('Error adding item: ' + result.error)
+      }
+    } catch (error) {
+      console.error('Error adding extracted item:', error)
+      alert('Error adding item. Please try again.')
     }
   }
 
@@ -368,6 +412,8 @@ export default function CanteenMenuPage() {
     categories: new Set(menuItems.map(item => item.category)).size
   }
 
+  const [showImageScan, setShowImageScan] = useState(false)
+
   return (
     <div className="min-h-screen bg-black flex">
       <CanteenSidebar />
@@ -594,9 +640,47 @@ export default function CanteenMenuPage() {
         </header>
 
         <div className="p-8">
+          {/* Image Scan Toggle */}
+          <div className="mb-8 space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold text-white">Menu Overview</h2>
+              <Button
+                variant={showImageScan ? "outline" : "default"}
+                className={`${showImageScan ? 'border-zinc-700 text-zinc-300 hover:text-white' : 'bg-[#e78a53] hover:bg-[#e78a53]/90'}`}
+                onClick={() => {
+                  setShowImageScan(prev => !prev)
+                  if (!showImageScan) {
+                    // Reset digital menu link when opening scanner
+                    setDigitalMenuLink(null)
+                    setCurrentDigitalMenuId(null)
+                  }
+                }}
+              >
+                {showImageScan ? 'Hide Image Scanner' : 'Scan Menu Image'}
+              </Button>
+            </div>
+            {showImageScan && (
+              <MenuImageExtractor 
+                onItemsExtracted={async (items) => {
+                  // Generate a unique digital menu ID for this extraction session
+                  const digitalMenuId = `dm_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+                  setCurrentDigitalMenuId(digitalMenuId)
+                  
+                  // Set the digital menu link
+                  const link = `${window.location.origin}/digital-menu/${digitalMenuId}`
+                  setDigitalMenuLink(link)
+                  
+                  // Add all items with the same digitalMenuId
+                  for (const item of items) {
+                    await handleAddExtractedItem(item, digitalMenuId)
+                  }
+                }}
+                digitalMenuLink={digitalMenuLink || undefined}
+              />
+            )}
+          </div>
           {/* Stats Overview */}
           <div className="mb-8">
-            <h2 className="text-xl font-bold text-white mb-4">Menu Overview</h2>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <Card className="bg-zinc-900/50 border-zinc-800">
                 <CardContent className="p-6">

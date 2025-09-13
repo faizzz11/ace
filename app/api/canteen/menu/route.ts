@@ -63,7 +63,10 @@ export async function POST(request: Request) {
       prepTime: parseInt(body.prepTime) || 15,
       rating: body.rating || 4.0,
       isAvailable: body.isAvailable !== undefined ? body.isAvailable : true,
+      digitalMenuId: body.digitalMenuId || null,
     });
+    
+    console.log('Created menu item with digitalMenuId:', body.digitalMenuId, 'item:', menuItem.name)
     
     return NextResponse.json({ 
       data: menuItem,
