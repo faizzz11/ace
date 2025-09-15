@@ -169,8 +169,6 @@ export function AIScheduleChat({ isOpen, onClose, onScheduleGenerated, classroom
     const examplePrompts = currentSchedule && Object.values(currentSchedule).some((day: any) => day?.length > 0) ? [
         "Add a lab session on Friday at 2:00 PM",
         "Add lunch break at 12:00-13:00 every day",
-        "Change Monday's 10:00 class to room B205",
-        "Remove the break on Wednesday",
         "Add a practical session on Thursday morning"
     ] : [
         "Create a schedule for Computer Science with 4 classes per week",

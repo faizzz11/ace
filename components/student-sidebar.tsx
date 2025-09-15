@@ -30,7 +30,7 @@ export function StudentSidebar({ className = "" }: SidebarProps) {
     { href: "/student/classroom", icon: BookOpen, label: "Classroom" },
     { href: "/student/events", icon: Users, label: "Events" },
     { href: "/student/food", icon: UtensilsCrossed, label: "Food Ordering" },
-    { href: "/student/resources", icon: BookOpen, label: "Resources" },
+    // { href: "/student/resources", icon: BookOpen, label: "Resources" },
     { href: "/student/ai-mentor", icon: MapPin, label: "Campus Navigation" },
     { href: "/student/attendance", icon: UserCheck, label: "Attendance" },
     { href: "/student/internships", icon: Briefcase, label: "Internships" },
